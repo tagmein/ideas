@@ -1,0 +1,12 @@
+{
+ "compilerOptions": {
+  "esModuleInterop": true,
+  "forceConsistentCasingInFileNames": true,
+  "moduleResolution": "node",
+  "noImplicitAny": true,
+  "preserveConstEnums": true,
+  "removeComments": true,
+  "sourceMap": true,
+  "target": "ES2022"
+ }
+}
