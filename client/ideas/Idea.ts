@@ -1,17 +1,19 @@
 export interface Idea<T> {
  name: string
- evolution: IdeaState[]
+ evolution: IdeaMutation[]
  final: T
 }
 
-export interface Values {
- [key: string]: any
-}
+type Values<T extends string | string[]> = T extends string
+ ? { [key in T]: any }
+ : { [key in T[number]]: any }
 
-export interface IdeaState {
- added: string[]
- removed: string[]
- values: Values
+export interface IdeaMutation<
+ TAdded extends string | string[] = string | string[],
+> {
+ added?: TAdded
+ removed?: string | string[]
+ values: Values<TAdded>
 }
 
 export const idea_tools = {
@@ -28,15 +30,25 @@ export const idea_tools = {
   const has_final_state: { [key: string]: true } = {}
   const final = {}
   for (const state of idea.evolution.reverse()) {
-   for (const added of state.added) {
-    if (!(added in has_final_state)) {
-     has_final_state[added] = true
-     final[added] = state.values[added]
+   if (typeof state.added === 'string') {
+    state.added = [state.added]
+   }
+   if (Array.isArray(state.added)) {
+    for (const added of state.added) {
+     if (!(added in has_final_state)) {
+      has_final_state[added] = true
+      final[added] = state.values[added]
+     }
     }
    }
-   for (const removed of state.removed) {
-    if (!(removed in has_final_state)) {
-     has_final_state[removed] = true
+   if (typeof state.removed === 'string') {
+    state.removed = [state.removed]
+   }
+   if (Array.isArray(state.removed)) {
+    for (const removed of state.removed) {
+     if (!(removed in has_final_state)) {
+      has_final_state[removed] = true
+     }
     }
    }
   }
