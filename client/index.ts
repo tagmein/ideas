@@ -11,7 +11,7 @@ main.labels.add({ title: 'Main' })
 library.boxes.add(main)
 library_tools.prepare_html_element(main)
 const main_element = box_tools.to_html_element(main)
-library_tools.toolbench_html_element(main_element)
+library_tools.attach_toolbench(main_element)
 document.body.appendChild(main_element)
 
 console.log({ library })

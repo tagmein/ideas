@@ -28,7 +28,7 @@ export const idea_tools = {
  },
  evolve<T, U = T>(idea: Idea<T>): Idea<U> {
   const has_final_state: { [key: string]: true } = {}
-  const final = {}
+  const final = {} as U
   for (const state of idea.evolution.reverse()) {
    if (typeof state.added === 'string') {
     state.added = [state.added]
@@ -54,7 +54,7 @@ export const idea_tools = {
   }
   return {
    ...idea,
-   final: final as unknown as U,
+   final,
   }
  },
 }
