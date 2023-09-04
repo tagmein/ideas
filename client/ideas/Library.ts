@@ -22,7 +22,7 @@ export const Library: LibraryIdea = idea_tools.evolve({
 export const LIBRARY_CONTAINER_CLASS_NAME = 'library_container'
 
 export interface LibraryToolsIdea {
- attach_toolbench(container: HTMLElement): void
+ attach_toolbench(container: HTMLDivElement): HTMLElement
  prepare_html_element(box: BoxIdea): void
 }
 
@@ -45,9 +45,12 @@ export const LibraryPrepareHTMLElementMutation: IdeaMutation = {
 export const LibraryAttachToolbenchHTMLElementMutation: IdeaMutation = {
  added: 'attach_toolbench',
  values: {
-  attach_toolbench(container: HTMLElement): void {
+  attach_toolbench(container: HTMLElement): HTMLDivElement {
    const toolbench = idea_tools.create(ToolBench)
-   container.appendChild(box_tools.to_html_element<HTMLDivElement>(toolbench))
+   const toolbench_element =
+    box_tools.to_html_element<HTMLDivElement>(toolbench)
+   container.appendChild(toolbench_element)
+   return toolbench_element
   },
  },
 }

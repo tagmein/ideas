@@ -15,7 +15,7 @@ export interface StyleToolsIdea {
  ): string
 }
 
-const StyleToCSSLineMigration: IdeaMutation = {
+const StyleToCSSLineMutation: IdeaMutation = {
  added: ['style_to_css_line'],
  values: {
   style_to_css_line<T extends keyof CSSStyleDeclaration & string>(
@@ -39,7 +39,7 @@ const StyleToCSSLineMigration: IdeaMutation = {
  },
 }
 
-const StylesToCSSMigration: IdeaMutation = {
+const StylesToCSSMutation: IdeaMutation = {
  added: 'styles_to_css',
  values: {
   styles_to_css<T extends keyof CSSStyleDeclaration & string>(
@@ -67,7 +67,7 @@ const StylesToCSSMigration: IdeaMutation = {
  },
 }
 
-export const AttachStylesMigration: IdeaMutation = {
+export const AttachStylesMutation: IdeaMutation = {
  added: 'attach_style',
  values: {
   attach_style(class_name: string, styles: Partial<CSSStyleDeclaration>): void {
@@ -79,11 +79,7 @@ export const AttachStylesMigration: IdeaMutation = {
 }
 
 export const style_tools: StyleToolsIdea = idea_tools.evolve({
- evolution: [
-  StyleToCSSLineMigration,
-  StylesToCSSMigration,
-  AttachStylesMigration,
- ],
+ evolution: [StyleToCSSLineMutation, StylesToCSSMutation, AttachStylesMutation],
  final: {} as StyleToolsIdea,
  name: 'style_tools',
 }).final

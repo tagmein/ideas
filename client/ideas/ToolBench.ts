@@ -19,6 +19,34 @@ style_tools.attach_style(TOOLBENCH_CLASS_NAME, {
  height: '40px',
 })
 
+style_tools.attach_style(`${TOOLBENCH_CLASS_NAME} > button`, {
+ backgroundColor: 'transparent',
+ border: 'none',
+ color: '#c8c8c8',
+ cursor: 'pointer',
+ fontSize: '16px',
+ fontWeight: '600',
+ padding: '0 8px 2px',
+})
+
+style_tools.attach_style(
+ `${TOOLBENCH_CLASS_NAME} > button:hover, .${TOOLBENCH_CLASS_NAME} > button:focus`,
+ {
+  backgroundColor: '#ffffff40',
+  color: '#ffffff',
+ },
+)
+
+style_tools.attach_style(`${TOOLBENCH_CLASS_NAME} > button:active`, {
+ boxShadow: 'inset 0 0 0 2px #c8c8c8, inset 0 0 1px 2px #00000080',
+ color: '#c8c8c8',
+})
+
+style_tools.attach_style(`${TOOLBENCH_CLASS_NAME} > button.selected`, {
+ backgroundColor: '#e8e8e8',
+ color: '#1b1b1b',
+})
+
 export const ToolBench: ToolBenchIdea = idea_tools.evolve({
  evolution: [
   {
