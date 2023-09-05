@@ -43,7 +43,7 @@ style_tools.attach_style(
 style_tools.attach_style(
  `${TOGGLE_CONTAINER_CLASS}[data-toggle="0"] > .${TOGGLE_OFF_CLASS}`,
  {
-  backgroundColor: '#e8e8e8',
+  backgroundColor: '#808080',
   border: '1px solid #1b1b1b',
   color: '#1b1b1b',
  },
