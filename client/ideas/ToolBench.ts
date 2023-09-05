@@ -17,6 +17,7 @@ style_tools.attach_style(TOOLBENCH_CLASS_NAME, {
  flexGrow: '0',
  flexShrink: '0',
  height: '40px',
+ zIndex: '4',
 })
 
 style_tools.attach_style(`${TOOLBENCH_CLASS_NAME} > button`, {
@@ -44,14 +45,17 @@ style_tools.attach_style(`${TOOLBENCH_CLASS_NAME} > button:active`, {
 
 style_tools.attach_style(`${TOOLBENCH_CLASS_NAME} > button.selected`, {
  backgroundColor: '#e8e8e8',
- color: '#1b1b1b',
+ color: '#303030',
 })
 
 export const ToolBench: ToolBenchIdea = idea_tools.evolve({
  evolution: [
   {
-   added: ['html_class_name', 'html_tag_name'],
+   added: ['html_attributes', 'html_class_name', 'html_tag_name'],
    values: {
+    html_attributes: {
+     tabIndex: '0',
+    },
     html_class_name: TOOLBENCH_CLASS_NAME,
     html_tag_name: 'div',
    },

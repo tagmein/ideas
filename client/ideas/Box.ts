@@ -1,5 +1,6 @@
 import { style_tools } from './CSSStyleDeclaration'
 import HTMLElement, {
+ HTMLAttributesIdea,
  HTMLElementStyleMutation,
  HTMLElementTagNameMutation,
  HTMLStyleIdea,
@@ -8,14 +9,20 @@ import HTMLElement, {
 import { IdeaMutation, idea_tools } from './Idea'
 import { LabelsIdea, LabelsMutation } from './Label'
 
-export interface BoxIdea extends HTMLStyleIdea, HTMLTagNameIdea, LabelsIdea {}
+export interface BoxIdea
+ extends HTMLStyleIdea,
+  HTMLTagNameIdea,
+  HTMLAttributesIdea,
+  LabelsIdea {}
+
+export const BoxIdeaEvolution: IdeaMutation[] = [
+ HTMLElementStyleMutation,
+ HTMLElementTagNameMutation,
+ LabelsMutation,
+]
 
 export const Box: BoxIdea = idea_tools.evolve({
- evolution: [
-  HTMLElementStyleMutation,
-  HTMLElementTagNameMutation,
-  LabelsMutation,
- ],
+ evolution: BoxIdeaEvolution,
  final: {} as BoxIdea,
  name: 'Box',
 }).final
@@ -57,6 +64,11 @@ export const BoxToHTMLElementMutation: IdeaMutation = {
    if ('html_class_list' in box) {
     for (const class_name of box.html_class_list) {
      element.classList.add(class_name)
+    }
+   }
+   if (box.html_attributes) {
+    for (const [k, v] of Object.entries(box.html_attributes)) {
+     element.setAttribute(k, v)
     }
    }
    return element

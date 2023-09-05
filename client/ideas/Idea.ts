@@ -37,6 +37,7 @@ export const idea_tools = {
     for (const added of state.added) {
      if (!(added in has_final_state)) {
       has_final_state[added] = true
+      // @ts-ignore
       final[added] = state.values[added] as any
      }
     }

@@ -1,5 +1,9 @@
 import { IdeaMutation } from './Idea'
 
+export interface ObscenityLevelIdea {
+ obscenity_level: number
+}
+
 export interface ObscenityLevelsIdea {
  obscenity_levels: 0x10
  obscenity_level_maximum: 0xf

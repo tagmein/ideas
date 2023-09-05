@@ -22,8 +22,21 @@ export const Library: LibraryIdea = idea_tools.evolve({
 export const LIBRARY_CONTAINER_CLASS_NAME = 'library_container'
 
 export interface LibraryToolsIdea {
- attach_toolbench(container: HTMLDivElement): HTMLElement
+ attach_toolbench(container: HTMLElement): HTMLElement
  prepare_html_element(box: BoxIdea): void
+}
+
+export interface LibraryViewStateIdea {
+ sidebar: boolean
+}
+
+export const LibraryViewStateMutation: IdeaMutation = {
+ added: ['library_view_state'],
+ values: {
+  library_view_state: {
+   sidebar: true,
+  },
+ },
 }
 
 style_tools.attach_style(LIBRARY_CONTAINER_CLASS_NAME, {

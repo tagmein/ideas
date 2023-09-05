@@ -33,5 +33,16 @@ export function Sidebar(container: HTMLElement) {
  container.appendChild(sidebar_container)
  sidebar_container.appendChild(content)
  sidebar_container.appendChild(sidebar)
- return [content, sidebar] as [HTMLDivElement, HTMLDivElement]
+ function enable_sidebar(state: boolean) {
+  if (state) {
+   sidebar_container.appendChild(sidebar)
+  } else {
+   sidebar_container.removeChild(sidebar)
+  }
+ }
+ return [content, sidebar, enable_sidebar] as [
+  HTMLDivElement,
+  HTMLDivElement,
+  (state: boolean) => void,
+ ]
 }

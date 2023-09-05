@@ -5,6 +5,9 @@ export default HTMLElement
 export interface HTMLTagNameIdea {
  html_tag_name: HTMLElement['tagName']
 }
+export interface HTMLAttributesIdea {
+ html_attributes?: { [key in keyof HTMLElement]: string }
+}
 
 export const HTMLElementTagNameMutation: IdeaMutation = {
  added: 'html_tag_name',
