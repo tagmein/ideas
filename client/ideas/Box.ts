@@ -29,6 +29,7 @@ export const Box: BoxIdea = idea_tools.evolve({
 
 interface BoxToolsIdea extends HTMLTagNameIdea {
  to_html_element<T extends HTMLElement>(box: BoxIdea): T
+ to_html_element_visual(box: BoxIdea): HTMLDivElement
 }
 
 const BoxHTMLElementStyleClassCreated: { [key: string]: true } = {}
@@ -76,8 +77,48 @@ export const BoxToHTMLElementMutation: IdeaMutation = {
  },
 }
 
+const BOX_CLASS = 'box'
+style_tools.attach_style(BOX_CLASS, {
+ backgroundColor: '#535353',
+ height: '128px',
+ width: '128px',
+ border: '1px solid #a0a0a0',
+ borderRadius: '8px',
+ position: 'relative',
+})
+
+style_tools.attach_style(`${BOX_CLASS} label`, {
+ position: 'absolute',
+ backgroundColor: '#a0a0a0',
+ color: '#1b1b1b',
+ padding: '6px 8px',
+ left: '8px',
+ bottom: '8px',
+ border: '1px solid #1b1b1b',
+ borderRadius: '8px',
+})
+
+export const VisualBoxToHTMLElementMutation: IdeaMutation = {
+ added: 'to_html_element_visual',
+ values: {
+  to_html_element_visual(box: BoxIdea): HTMLDivElement {
+   const box_element = document.createElement('div')
+   box_element.setAttribute('tabindex', '0')
+   box_element.classList.add(BOX_CLASS)
+   const label_element = document.createElement('label')
+   box_element.appendChild(label_element)
+   for (const label of box.labels) {
+    const label_line = document.createElement('div')
+    label_line.textContent = label.title
+    label_element.appendChild(label_line)
+   }
+   return box_element
+  },
+ },
+}
+
 export const box_tools: BoxToolsIdea = idea_tools.evolve({
- evolution: [BoxToHTMLElementMutation],
+ evolution: [BoxToHTMLElementMutation, VisualBoxToHTMLElementMutation],
  final: {} as BoxToolsIdea,
  name: 'box_tools',
 }).final

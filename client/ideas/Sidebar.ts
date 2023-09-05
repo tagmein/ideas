@@ -9,6 +9,7 @@ style_tools.attach_style('sidebar_container', {
 
 style_tools.attach_style('sidebar_content', {
  flexGrow: '1',
+ padding: '8px',
 })
 
 style_tools.attach_style('sidebar_sidebar', {

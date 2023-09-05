@@ -1,10 +1,8 @@
-import { DocumentIdea } from '../ideas/Document'
+import { DocumentIdea, UpdateDocumentIdea } from '../ideas/Document'
 import { LibraryIdea, library_tools } from '../ideas/Library'
 import { menu_tools } from '../ideas/Menu'
 
-export interface ToolBenchControlIdea {
- update_document(doc: DocumentIdea): void
-}
+export interface ToolBenchControlIdea extends UpdateDocumentIdea {}
 
 export function tool_bench(
  library: LibraryIdea,

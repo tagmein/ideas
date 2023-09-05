@@ -14,3 +14,7 @@ export const Doc: DocumentIdea = idea_tools.evolve({
  final: {} as DocumentIdea,
  name: 'Doc',
 }).final
+
+export interface UpdateDocumentIdea {
+ update_document(doc: DocumentIdea): void
+}
