@@ -1,6 +1,6 @@
 import { box_tools } from '../ideas/Box'
 import { DocumentIdea, UpdateDocumentIdea } from '../ideas/Document'
-import { LibraryIdea, library_tools } from '../ideas/Library'
+import { LibraryIdea } from '../ideas/Library'
 import { Sidebar } from '../ideas/Sidebar'
 import { tool_bench } from './tool_bench'
 
