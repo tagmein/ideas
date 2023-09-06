@@ -1,4 +1,6 @@
+import { HasBatteryIdea, battery_tools } from './Battery'
 import { style_tools } from './CSSStyleDeclaration'
+import { DocumentIdea } from './Document'
 import HTMLElement, {
  HTMLAttributesIdea,
  HTMLElementStyleMutation,
@@ -8,9 +10,12 @@ import HTMLElement, {
 } from './HTMLElement'
 import { IdeaMutation, idea_tools } from './Idea'
 import { LabelsIdea, LabelsMutation } from './Label'
+import { ListItemIdea } from './List'
+import { menu_tools } from './Menu'
 
 export interface BoxIdea
- extends HTMLStyleIdea,
+ extends HasBatteryIdea,
+  HTMLStyleIdea,
   HTMLTagNameIdea,
   HTMLAttributesIdea,
   LabelsIdea {}
@@ -29,7 +34,11 @@ export const Box: BoxIdea = idea_tools.evolve({
 
 interface BoxToolsIdea extends HTMLTagNameIdea {
  to_html_element<T extends HTMLElement>(box: BoxIdea): T
- to_html_element_visual(box: BoxIdea): HTMLDivElement
+ to_html_element_visual(
+  box: BoxIdea,
+  get_document: () => DocumentIdea,
+  menu_items: ListItemIdea[],
+ ): HTMLDivElement
 }
 
 const BoxHTMLElementStyleClassCreated: { [key: string]: true } = {}
@@ -79,30 +88,60 @@ export const BoxToHTMLElementMutation: IdeaMutation = {
 
 const BOX_CLASS = 'box'
 style_tools.attach_style(BOX_CLASS, {
- backgroundColor: '#535353',
- height: '128px',
- width: '128px',
- border: '1px solid #a0a0a0',
+ backgroundColor: '#1b1b1b',
+ border: '1px solid #b1b1b1',
  borderRadius: '8px',
- position: 'relative',
+ height: '96px',
+ margin: '10px',
+ position: 'absolute',
+ width: '96px',
+})
+
+style_tools.attach_style(`${BOX_CLASS}.selected`, {
+ backgroundColor: '#808080',
+ border: '1px solid #ffffff',
 })
 
 style_tools.attach_style(`${BOX_CLASS} label`, {
- position: 'absolute',
- backgroundColor: '#a0a0a0',
- color: '#1b1b1b',
- padding: '6px 8px',
- left: '8px',
+ backgroundColor: '#303030',
+ border: '1px solid #b1b1b1',
+ borderRadius: '4px',
  bottom: '8px',
- border: '1px solid #1b1b1b',
- borderRadius: '8px',
+ color: '#ffffff',
+ left: '8px',
+ maxHeight: '62px',
+ maxWidth: '62px',
+ overflow: 'hidden',
+ padding: '6px 8px',
+ position: 'absolute',
 })
 
 export const VisualBoxToHTMLElementMutation: IdeaMutation = {
  added: 'to_html_element_visual',
  values: {
-  to_html_element_visual(box: BoxIdea): HTMLDivElement {
+  to_html_element_visual(
+   box: BoxIdea,
+   get_document: () => DocumentIdea,
+   menu_items: ListItemIdea[],
+  ): HTMLDivElement {
    const box_element = document.createElement('div')
+   const box_menu = menu_tools.create({
+    title: 'Box',
+    get_document,
+    menu_items,
+    menu_select_item(value) {},
+    menu_toggle_item(value, state) {},
+   })
+   box_element.addEventListener('focus', function () {
+    menu_tools.open_menu(
+     box_element,
+     get_document(),
+     box_menu.menu_items,
+     box_menu.menu_select_item,
+     box_menu.menu_toggle_item,
+     10,
+    )
+   })
    box_element.setAttribute('tabindex', '0')
    box_element.classList.add(BOX_CLASS)
    const label_element = document.createElement('label')
@@ -111,6 +150,9 @@ export const VisualBoxToHTMLElementMutation: IdeaMutation = {
     const label_line = document.createElement('div')
     label_line.textContent = label.title
     label_element.appendChild(label_line)
+   }
+   if (box.battery) {
+    box_element.appendChild(battery_tools.to_html_element_visual(box.battery))
    }
    return box_element
   },
@@ -124,12 +166,12 @@ export const box_tools: BoxToolsIdea = idea_tools.evolve({
 }).final
 
 export interface BoxesIdea {
- boxes: Set<BoxIdea>
+ boxes: Map<number, BoxIdea>
 }
 
 export const BoxesMutation: IdeaMutation = {
  added: ['boxes'],
  values: {
-  boxes: new Set(),
+  boxes: new Map(),
  },
 }

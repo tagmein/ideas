@@ -50,8 +50,15 @@ export interface MenuToolsIdea {
   menu_items: ListItemIdea[],
   menu_select_item: (value: string) => void,
   menu_toggle_item: (value: string, state: boolean) => void,
+  horizontal_offset?: number,
+  vertical_offset?: number,
  ): void
- reposition_menu(context: HTMLElement, menu: HTMLElement): void
+ reposition_menu(
+  context: HTMLElement,
+  menu: HTMLElement,
+  horizontal_offset?: number,
+  vertical_offset?: number,
+ ): void
  to_html_button(menu: MenuIdea): HTMLButtonElement
 }
 
@@ -171,6 +178,8 @@ export const MenuToolsOpenMutation: IdeaMutation = {
    menu_items: ListItemIdea[],
    menu_select_item: (value: string) => void,
    menu_toggle_item: (value: string, state: boolean) => void,
+   horizontal_offset: number = 0,
+   vertical_offset: number = 0,
   ) {
    close_current_menu?.()
    function close_menu() {
@@ -203,15 +212,30 @@ export const MenuToolsOpenMutation: IdeaMutation = {
     },
     menu_toggle_item,
    )
-   menu_tools.reposition_menu(context, menu_list)
+   menu_tools.reposition_menu(
+    context,
+    menu_list,
+    horizontal_offset,
+    vertical_offset,
+   )
    window.addEventListener('resize', function () {
-    menu_tools.reposition_menu(context, menu_list)
+    menu_tools.reposition_menu(
+     context,
+     menu_list,
+     horizontal_offset,
+     vertical_offset,
+    )
    })
   },
-  reposition_menu(context: HTMLElement, menu: HTMLElement) {
+  reposition_menu(
+   context: HTMLElement,
+   menu: HTMLElement,
+   horizontal_offset: number = 0,
+   vertical_offset: number = 0,
+  ) {
    const context_rect = context.getBoundingClientRect()
-   const top = context_rect.bottom
-   const left = context_rect.left - 1
+   const top = context_rect.bottom + vertical_offset
+   const left = context_rect.left - 1 + horizontal_offset
    const minWidth = Math.max(128, context_rect.width)
    const maxWidth = innerWidth - left
    const maxHeight = innerHeight - top

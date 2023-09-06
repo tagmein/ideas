@@ -17,6 +17,7 @@ style_tools.attach_style(TOOLBENCH_CLASS_NAME, {
  flexGrow: '0',
  flexShrink: '0',
  height: '40px',
+ justifyContent: 'center',
  zIndex: '4',
 })
 

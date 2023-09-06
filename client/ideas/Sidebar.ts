@@ -5,17 +5,17 @@ style_tools.attach_style('sidebar_container', {
  width: '100%',
  display: 'flex',
  flexDirection: 'row',
+ marginBottom: '1px',
 })
 
 style_tools.attach_style('sidebar_content', {
  flexGrow: '1',
- padding: '8px',
+ position: 'relative',
 })
 
 style_tools.attach_style('sidebar_sidebar', {
  backgroundColor: '#535353',
  borderLeft: '1px solid #808080',
- boxShadow: 'inset 0 0 2px #ffffff',
  width: '360px',
  flexGrow: '0',
  flexShrink: '0',
@@ -34,6 +34,8 @@ export function Sidebar(container: HTMLElement) {
  container.appendChild(sidebar_container)
  sidebar_container.appendChild(content)
  sidebar_container.appendChild(sidebar)
+ content.setAttribute('tabindex', '0')
+ sidebar.setAttribute('tabindex', '0')
  function enable_sidebar(state: boolean) {
   if (state) {
    sidebar_container.appendChild(sidebar)
