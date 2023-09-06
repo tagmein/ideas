@@ -86,15 +86,18 @@ export const BoxToHTMLElementMutation: IdeaMutation = {
  },
 }
 
+export const BOX_VISUAL_HEIGHT = 128
+export const BOX_VISUAL_WIDTH = 128
+
 const BOX_CLASS = 'box'
 style_tools.attach_style(BOX_CLASS, {
  backgroundColor: '#1b1b1b',
  border: '1px solid #b1b1b1',
  borderRadius: '8px',
- height: '96px',
- margin: '10px',
+ boxSizing: 'border-box',
+ height: `${BOX_VISUAL_HEIGHT - 20}px`,
  position: 'absolute',
- width: '96px',
+ width: `${BOX_VISUAL_HEIGHT - 20}px`,
 })
 
 style_tools.attach_style(`${BOX_CLASS}.selected`, {
