@@ -11,7 +11,8 @@ export function tool_bench(
  menu_toggle_item: (value: string, state: boolean) => void,
 ): ToolBenchControlIdea {
  const control: ToolBenchControlIdea = {
-  update_document(_doc) {
+  update_document(_library, _doc) {
+   library = _library
    doc = _doc
   },
  }

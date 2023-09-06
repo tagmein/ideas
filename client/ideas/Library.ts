@@ -1,10 +1,11 @@
-import { Box, BoxIdea, BoxesIdea, BoxesMutation, box_tools } from './Box'
+import { BoxIdea, BoxesMutation, box_tools } from './Box'
 import { style_tools } from './CSSStyleDeclaration'
+import { DocumentsIdea, DocumentsMutation } from './Documents'
 import { IdeaMutation, idea_tools } from './Idea'
 import { ObscenityLevelsIdea, ObscenityLevelsMutation } from './Obscenity'
 import { ToolBench } from './ToolBench'
 
-export interface LibraryIdea extends BoxesIdea, ObscenityLevelsIdea {}
+export interface LibraryIdea extends DocumentsIdea, ObscenityLevelsIdea {}
 
 // const example_library: LibraryIdea = {
 //  boxes: new Set(),
@@ -14,7 +15,7 @@ export interface LibraryIdea extends BoxesIdea, ObscenityLevelsIdea {}
 // }
 
 export const Library: LibraryIdea = idea_tools.evolve({
- evolution: [ObscenityLevelsMutation, BoxesMutation],
+ evolution: [ObscenityLevelsMutation, DocumentsMutation],
  final: {} as LibraryIdea,
  name: 'Library',
 }).final

@@ -45,7 +45,7 @@ export interface MenuToolsIdea {
  ): MenuIdea
  close_menu(): void
  open_menu(
-  context: HTMLElement,
+  context: HTMLElement | MouseEvent,
   doc: DocumentIdea,
   menu_items: ListItemIdea[],
   menu_select_item: (value: string) => void,
@@ -54,7 +54,7 @@ export interface MenuToolsIdea {
   vertical_offset?: number,
  ): void
  reposition_menu(
-  context: HTMLElement,
+  context: HTMLElement | MouseEvent,
   menu: HTMLElement,
   horizontal_offset?: number,
   vertical_offset?: number,
@@ -173,7 +173,7 @@ export const MenuToolsOpenMutation: IdeaMutation = {
    close_current_menu?.()
   },
   open_menu(
-   context: HTMLElement,
+   context: HTMLElement | MouseEvent,
    doc: DocumentIdea,
    menu_items: ListItemIdea[],
    menu_select_item: (value: string) => void,
@@ -185,7 +185,9 @@ export const MenuToolsOpenMutation: IdeaMutation = {
    function close_menu() {
     document.body.removeChild(menu_shade)
     document.body.removeChild(menu_list)
-    context.classList.remove('selected')
+    if ('classList' in context) {
+     context.classList.remove('selected')
+    }
     close_current_menu = undefined
    }
    close_current_menu = close_menu
@@ -193,7 +195,9 @@ export const MenuToolsOpenMutation: IdeaMutation = {
    menu_shade.addEventListener('click', close_menu)
    menu_shade.classList.add(MENU_SHADE_CLASS)
    document.body.appendChild(menu_shade)
-   context.classList.add('selected')
+   if ('classList' in context) {
+    context.classList.add('selected')
+   }
    const menu_list = document.createElement('div')
    menu_list.classList.add(MENU_LIST_CLASS)
    document.body.appendChild(menu_list)
@@ -228,12 +232,15 @@ export const MenuToolsOpenMutation: IdeaMutation = {
    })
   },
   reposition_menu(
-   context: HTMLElement,
+   context: HTMLElement | MouseEvent,
    menu: HTMLElement,
    horizontal_offset: number = 0,
    vertical_offset: number = 0,
   ) {
-   const context_rect = context.getBoundingClientRect()
+   const context_rect =
+    'getBoundingClientRect' in context
+     ? context.getBoundingClientRect()
+     : { bottom: context.clientY, left: context.clientX, width: 120 }
    const top = context_rect.bottom + vertical_offset
    const left = context_rect.left - 1 + horizontal_offset
    const minWidth = Math.max(128, context_rect.width)

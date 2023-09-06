@@ -1,7 +1,11 @@
 import { BoxIdea, BoxIdeaEvolution } from './Box'
 import { IdIdea } from './Id'
-import { idea_tools } from './Idea'
-import { LibraryViewStateIdea, LibraryViewStateMutation } from './Library'
+import { IdeaMutation, idea_tools } from './Idea'
+import {
+ LibraryIdea,
+ LibraryViewStateIdea,
+ LibraryViewStateMutation,
+} from './Library'
 
 export interface DocumentIdea extends BoxIdea, IdIdea, LibraryViewStateIdea {}
 
@@ -16,5 +20,5 @@ export const Doc: DocumentIdea = idea_tools.evolve({
 }).final
 
 export interface UpdateDocumentIdea {
- update_document(doc: DocumentIdea): void
+ update_document(library: LibraryIdea, doc: DocumentIdea): void
 }

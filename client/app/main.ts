@@ -1,8 +1,18 @@
-import { BOX_VISUAL_HEIGHT, BOX_VISUAL_WIDTH, box_tools } from '../ideas/Box'
+import {
+ BOX_VISUAL_HEIGHT,
+ BOX_VISUAL_WIDTH,
+ Box,
+ BoxIdea,
+ box_tools,
+} from '../ideas/Box'
 import { style_tools } from '../ideas/CSSStyleDeclaration'
-import { DocumentIdea, UpdateDocumentIdea } from '../ideas/Document'
+import { data_tools } from '../ideas/Data'
+import { Doc, DocumentIdea, UpdateDocumentIdea } from '../ideas/Document'
+import { idea_tools } from '../ideas/Idea'
 import { LibraryIdea } from '../ideas/Library'
+import { menu_tools } from '../ideas/Menu'
 import { Sidebar } from '../ideas/Sidebar'
+import { space_fill_2d_to_1d } from '../ideas/SpaceFilling'
 import { tool_bench } from './tool_bench'
 
 function grid_position_2d_spacefill(position: number): [number, number] {
@@ -17,12 +27,16 @@ function grid_position_2d_spacefill(position: number): [number, number] {
  }
 }
 
-export function main(
+export interface RouteDocumentIdea {
+ route(id: string): void
+}
+
+export async function main(
  library: LibraryIdea,
- home: DocumentIdea,
+ doc: DocumentIdea,
  container: HTMLElement,
-) {
- console.log({ library, home })
+): Promise<RouteDocumentIdea> {
+ console.log({ library, doc })
  function toggle_item(value: string, state: boolean) {
   switch (value) {
    case 'sidebar':
@@ -36,11 +50,11 @@ export function main(
   position: 'absolute',
   top: '0',
   left: '0',
-  zIndex: '5',
+  zIndex: '1',
  })
  let last_resize_listener: (() => void) | undefined
  const BLUR_SIZE = 7
- const bench = tool_bench(library, home, container, toggle_item)
+ const bench = tool_bench(library, doc, container, toggle_item)
  const [content, sidebar, enable_sidebar] = Sidebar(container)
  function blur_effect(
   canvas: HTMLCanvasElement,
@@ -65,7 +79,7 @@ export function main(
   layer.globalAlpha = 1
  }
  const content_render: UpdateDocumentIdea = {
-  update_document(doc) {
+  update_document(library, doc) {
    content.textContent = ''
    const overlay = document.createElement('canvas')
    overlay.classList.add(OVERLAY_CLASS)
@@ -89,13 +103,7 @@ export function main(
      blur_effect(overlay, overlay_layer)
      for (let c_x = 0; c_x < cells_x; c_x++) {
       for (let c_y = 0; c_y < cells_y; c_y++) {
-       const square_size = Math.max(c_x + 1, c_y + 1)
-       const last_square_size = square_size - 1
-       const last_square_area = last_square_size * last_square_size
-       const position =
-        last_square_area +
-        (c_x === square_size - 1 ? c_y : 2 * last_square_size - c_x)
-       const text = position.toString(10)
+       const text = space_fill_2d_to_1d(c_x, c_y).toString(10)
        overlay_layer.fillText(
         text,
         10 +
@@ -110,33 +118,120 @@ export function main(
    }
    last_resize_listener()
    addEventListener('resize', last_resize_listener)
-   for (const [position, box] of library.boxes.entries()) {
-    const library_box = box_tools.to_html_element_visual(
-     box,
-     function () {
-      return doc
-     },
-     [
-      {
-       title: 'Position: ' + position.toString(10),
-       value: 'position',
-      },
-     ],
-    )
-    const [x, y] = grid_position_2d_spacefill(position)
-    library_box.style.left = `${x * BOX_VISUAL_WIDTH + 20}px`
-    library_box.style.top = `${y * BOX_VISUAL_HEIGHT + 20}px`
-    content.appendChild(library_box)
+   for (const [position, box] of library.documents.entries()) {
+    create_library_box(position, box)
    }
   },
  }
- function route() {
-  const id = location.hash.substring(1)
-  const new_doc: DocumentIdea = { ...home, id } // todo: load path
-  for (const item of [bench, content_render /*, sidebar_render*/]) {
-   item.update_document(new_doc)
-  }
+
+ function create_library_box(position: number, box: BoxIdea) {
+  const library_box = box_tools.to_html_element_visual(
+   box,
+   function () {
+    return doc
+   },
+   [
+    {
+     title: 'Position: ' + position.toString(10),
+     value: 'position',
+    },
+    {
+     title: 'Open',
+     value: 'open',
+    },
+    {
+     title: 'Remove',
+     value: 'remove',
+    },
+   ],
+   async function (selection: string) {
+    switch (selection) {
+     case 'remove':
+      await data_tools.make_query(
+       `DELETE FROM boxes WHERE parent_id = :1 AND position = :2`,
+       [doc.id, position],
+      )
+      library.documents.delete(position)
+      content.removeChild(library_box)
+      break
+     case 'open':
+      location.hash += `/${position}`
+      break
+    }
+   },
+  )
+  const [x, y] = grid_position_2d_spacefill(position)
+  library_box.style.left = `${x * BOX_VISUAL_WIDTH + 20}px`
+  library_box.style.top = `${y * BOX_VISUAL_HEIGHT + 20}px`
+  content.appendChild(library_box)
  }
- addEventListener('hashchange', route)
- route()
+
+ content.addEventListener('click', function (event: MouseEvent) {
+  if (event.target !== content) {
+   return
+  }
+  const x = Math.floor(event.clientX / BOX_VISUAL_WIDTH)
+  const y = Math.floor(event.clientY / BOX_VISUAL_HEIGHT)
+  const position = space_fill_2d_to_1d(x, y)
+  menu_tools.open_menu(
+   event,
+   doc,
+   [{ title: 'Add', value: 'add' }],
+   async function (value: string) {
+    switch (value) {
+     case 'add':
+      const new_doc = idea_tools.create(Doc)
+      const title = 'untitled'
+      await data_tools.make_query(
+       `INSERT INTO boxes (parent_id, position, title) VALUES (:1, :2, :3)`,
+       [doc.id, position, title],
+      )
+      new_doc.labels = new Set([{ title }])
+      library.documents.set(position, new_doc)
+      create_library_box(position, new_doc)
+      break
+    }
+   },
+   function () {},
+  )
+ })
+
+ await data_tools.make_query(`
+  CREATE TABLE IF NOT EXISTS boxes (
+   position INTEGER NOT NULL,
+   title TEXT NOT NULL,
+   parent_id TEXT NOT NULL,
+   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  );
+ `)
+
+ async function route(id: string) {
+  console.log('id is', JSON.stringify(id))
+  const new_doc: DocumentIdea = { ...doc, id } // todo: load path
+  const boxes_setup: { position: number; title: string }[] =
+   await data_tools.make_query(
+    'select position , title from boxes where parent_id = :1',
+    [id],
+   )
+  library.documents = new Map()
+  const depth = id.length > 0 ? id.split('/').length : 0
+  library.documents.set(0, {
+   sidebar: false,
+   id: '',
+   labels: new Set([{ title: 'Home' }]),
+  })
+  for (const setup of boxes_setup) {
+   library.documents.set(setup.position, {
+    id: `${id}/${setup.position.toString(10)}`,
+    labels: new Set([{ title: setup.title }]),
+    sidebar: false,
+   })
+  }
+  for (const item of [bench, content_render /*, sidebar_render*/]) {
+   item.update_document(library, new_doc)
+  }
+  doc = new_doc
+ }
+
+ return { route }
 }

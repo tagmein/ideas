@@ -38,6 +38,7 @@ interface BoxToolsIdea extends HTMLTagNameIdea {
   box: BoxIdea,
   get_document: () => DocumentIdea,
   menu_items: ListItemIdea[],
+  on_selected_menu_item: (value: string) => void,
  ): HTMLDivElement
 }
 
@@ -52,12 +53,12 @@ export const BoxToHTMLElementMutation: IdeaMutation = {
    }
    const element = document.createElement(box.html_tag_name) as T
    const html_style_keys =
-    'html_style' in box
+    'html_style' in box && box.html_style
      ? (Object.keys(box.html_style) as (keyof CSSStyleDeclaration & string)[])
      : []
    if (html_style_keys.length > 0) {
     const class_name = `${box.html_tag_name}_${box.html_class_name}`
-    if (!(class_name in BoxHTMLElementStyleClassCreated)) {
+    if (box.html_style && !(class_name in BoxHTMLElementStyleClassCreated)) {
      const styleElement = document.createElement('style')
      document.head.appendChild(styleElement)
      BoxHTMLElementStyleClassCreated[class_name] = true
@@ -71,7 +72,7 @@ export const BoxToHTMLElementMutation: IdeaMutation = {
    } else if (box.html_class_name) {
     element.classList.add(box.html_class_name)
    }
-   if ('html_class_list' in box) {
+   if ('html_class_list' in box && box.html_class_list) {
     for (const class_name of box.html_class_list) {
      element.classList.add(class_name)
     }
@@ -126,13 +127,14 @@ export const VisualBoxToHTMLElementMutation: IdeaMutation = {
    box: BoxIdea,
    get_document: () => DocumentIdea,
    menu_items: ListItemIdea[],
+   on_selected_menu_item: (value: string) => void,
   ): HTMLDivElement {
    const box_element = document.createElement('div')
    const box_menu = menu_tools.create({
     title: 'Box',
     get_document,
     menu_items,
-    menu_select_item(value) {},
+    menu_select_item: on_selected_menu_item,
     menu_toggle_item(value, state) {},
    })
    box_element.addEventListener('focus', function () {
@@ -142,7 +144,8 @@ export const VisualBoxToHTMLElementMutation: IdeaMutation = {
      box_menu.menu_items,
      box_menu.menu_select_item,
      box_menu.menu_toggle_item,
-     10,
+     106,
+     -106,
     )
    })
    box_element.setAttribute('tabindex', '0')
