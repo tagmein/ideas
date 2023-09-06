@@ -83,7 +83,7 @@ export function main(
     overlay.style.height = `${content_rect.height}px`
     overlay.style.width = `${content_rect.width}px`
     overlay_layer.clearRect(0, 0, overlay.width, overlay.height)
-    overlay_layer.fillStyle = '#ffffff40'
+    overlay_layer.fillStyle = '#ffffff20'
     overlay_layer.font = '14px monospace'
     for (let _ in [0, 0, 0, 0]) {
      blur_effect(overlay, overlay_layer)

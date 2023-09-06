@@ -10,6 +10,7 @@ style_tools.attach_style('sidebar_container', {
 
 style_tools.attach_style('sidebar_content', {
  flexGrow: '1',
+ overflow: 'hidden',
  position: 'relative',
 })
 
