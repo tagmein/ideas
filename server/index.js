@@ -1,9 +1,9 @@
-import dotenv from 'dotenv'
-import express, { Request, Response } from 'express'
-import fs from 'fs'
-import path from 'path'
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
+const dotenv = require( 'dotenv')
+const express = require('express')
+const fs = require('fs')
+const path = require('path')
+const sqlite3 = require('sqlite3')
+const { open } = require('sqlite')
 
 dotenv.config()
 const port = process.env.PORT
@@ -22,9 +22,9 @@ Object.entries({
  'index.html': '/',
  'require.js': '/require.js',
 }).map(function ([file, url]) {
- const extension = file.split('.').pop() as keyof typeof contentTypes
+ const extension = file.split('.').pop()
  const fileContents = fs.readFileSync(file)
- app.get(url, function (req: Request, res: Response) {
+ app.get(url, function (req, res) {
   res.status(200)
   res.set({
    'Content-Length': fileContents.length,
@@ -39,7 +39,7 @@ app.use('/client', express.static(path.join(__dirname, '..', 'client')))
 
 app.use(express.json())
 
-app.post('/data', async function (req: Request, res: Response, next) {
+app.post('/data', async function (req, res, next) {
  try {
   const db = await open({
    filename: path.join(__dirname, '..', 'data', 'example-user.db'),
@@ -60,10 +60,10 @@ app.post('/data', async function (req: Request, res: Response, next) {
 })
 
 app.use(function (
- err: any,
- _: Request,
- res: Response,
- next: (err: any) => void,
+ err,
+ _,
+ res,
+ next,
 ) {
  console.error(err)
  if (res.headersSent) {

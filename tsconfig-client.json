@@ -1,9 +1,0 @@
-{
- "extends": "./tsconfig-common.json",
- "compilerOptions": {
-  "module": "amd",
-  "outDir": "./client-dist",
-  "typeRoots": ["./types", "./node_modules/@types"]
- },
- "include": ["client/**/*"]
-}
