@@ -1,13 +1,12 @@
 {
   "name": "ideas",
   "version": "0.0.0",
-  "description": "Ideas component library for TypeScript",
+  "description": "Ideas component library for JavaScript",
   "main": "src/index.ts",
   "scripts": {
     "start": "mkdir -p data && nodemon --watch client --watch server server"
   },
   "keywords": [
-    "TypeScript",
     "JavaScript",
     "components",
     "component library",

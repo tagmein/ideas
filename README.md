@@ -1,6 +1,6 @@
 # Ideas
 
-Ideas component library for TypeScript
+Ideas component library for JavaScript
 
 ## Development
 
@@ -11,21 +11,14 @@ npm install
 npm start
 ```
 
-## Build
-
-To build Plan, install dependencies and run the build command. Artifacts will be created in the `client-dist` and `server-dist` directories.
-
-```sh
-npm install
-npm run build
-```
-
 ## Serve
 
 See `PORT` in `.env` file to configure the server port.
 
 ```sh
-node server-dist
+npm install
+mkdir -p data
+node server
 ```
 
 ## Contributing
