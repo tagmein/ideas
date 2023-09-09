@@ -21,87 +21,7 @@ function type_string(type) {
  throw new Error('type not implemented')
 }
 
-function is_a_valid(type, value, failure_reason_callback) {
- switch (type) {
-  case 'type':
-   const is_valid_type =
-    KNOWN_TYPE_STRINGS.has(value) ||
-    (typeof value === 'object' && value[IsTypeObject])
-   if (!is_valid_type) {
-    failure_reason_callback?.('was expecting a known type, or a type object')
-   }
-   return is_valid_type
-  case 'bigint':
-  case 'boolean':
-  case 'function':
-  case 'number':
-  case 'string':
-  case 'symbol':
-  case 'undefined':
-   const is_valid_js_type = typeof value === type
-   if (!is_valid_js_type) {
-    failure_reason_callback?.(
-     `expecting ${type_string(type)}, got ${type_string(type_of(value))}`,
-    )
-   }
-   return is_valid_js_type
-  default:
-   if (type && type[IsTypeObject]) {
-    if (!value) {
-     failure_reason_callback?.(
-      `<${type_of(value)}> is not suitable for <${type.name}>`,
-     )
-     return false
-    }
-    if (type.name === 'array') {
-     if (!type.items) {
-      throw new Error('array type without items specified')
-     }
-     if (!Array.isArray(value)) {
-      failure_reason_callback?.(`expected array`)
-     }
-     return value.every(function (item, index) {
-      // does the item match the type of type.items
-      const array_item_is_valid = is_a_valid(type.items, item)
-      if (!array_item_is_valid) {
-       failure_reason_callback?.(
-        `type mismatch at array index ${index}: ${type_string(
-         type_of(item),
-        )} vs ${type_string(type.items)}`,
-       )
-      }
-      return array_item_is_valid
-     })
-    }
-    return Object.entries(type.properties).every(function ([
-     property_name,
-     property_type,
-    ]) {
-     let rreason
-     const property_is_valid = is_a_valid(
-      property_type,
-      value[property_name],
-      (_reason) => (rreason = _reason),
-     )
-     if (!property_is_valid) {
-      failure_reason_callback?.(
-       `property ${property_name}: <${type_string(
-        type_of(value[property_name]),
-       )}> not suitable for <${property_type}> (reason is ${
-        rreason ?? 'unknown'
-       })`,
-      )
-     }
-     return property_is_valid
-    })
-   } else {
-    failure_reason_callback?.(`<${type}> is not yet implemented`)
-    console.log(type)
-    return false
-   }
- }
-}
-
+const IsTypeArray = Symbol('IsTypeArray')
 const IsTypeObject = Symbol('IsTypeObject')
 
 function type_of(value) {
@@ -143,8 +63,7 @@ const TypedFunctionType = {
  properties: {
   return: 'type',
   arguments: {
-   [IsTypeObject]: true,
-   name: 'array',
+   [IsTypeArray]: true,
    items: 'type',
   },
  },
@@ -260,8 +179,146 @@ function typed_frame() {
  return me
 }
 
+const element_type = {
+ [IsTypeObject]: true,
+ name: 'Element',
+ properties: {
+  classList: {
+   [IsTypeArray]: true,
+   items: 'string',
+  },
+  tagName: 'string',
+ },
+}
+
+const create_element_function_type = {
+ [IsTypeObject]: true,
+ arguments: ['string'],
+ return: element_type,
+}
+
+const document_type = {
+ [IsTypeObject]: true,
+ name: 'Document',
+ properties: {
+  body: element_type,
+  createElement: create_element_function_type,
+ },
+}
+
+const global_type = (globalThis.ideas_global_type = {
+ [IsTypeObject]: true,
+ name: 'Window',
+ properties: {
+  document: document_type,
+ },
+})
+function is_a_valid(type, value, failure_reason_callback) {
+ if (type === global_type) {
+  return value === globalThis
+ }
+ switch (type) {
+  case 'type':
+   const is_valid_type =
+    KNOWN_TYPE_STRINGS.has(value) ||
+    (typeof value === 'object' && (value[IsTypeObject] || value[IsTypeArray]))
+   if (!is_valid_type) {
+    failure_reason_callback?.(
+     'was expecting a known type, or a type object, or a type array',
+    )
+   }
+   return is_valid_type
+  case 'bigint':
+  case 'boolean':
+  case 'function':
+  case 'number':
+  case 'string':
+  case 'symbol':
+  case 'undefined':
+   const is_valid_js_type = typeof value === type
+   if (!is_valid_js_type) {
+    failure_reason_callback?.(
+     `expecting ${type_string(type)}, got ${type_string(type_of(value))}`,
+    )
+   }
+   return is_valid_js_type
+  default:
+   if (type && type[IsTypeArray]) {
+    if (!type.items) {
+     throw new Error('array type without items specified')
+    }
+    if (!Array.isArray(value)) {
+     failure_reason_callback?.(`expected array`)
+    }
+    return value.every(function (item, index) {
+     // does the item match the type of type.items
+     const array_item_is_valid = is_a_valid(type.items, item)
+     if (!array_item_is_valid) {
+      failure_reason_callback?.(
+       `type mismatch at array index ${index}: ${type_string(
+        type_of(item),
+       )} vs ${type_string(type.items)}`,
+      )
+     }
+     return array_item_is_valid
+    })
+   }
+   if (type && type[IsTypeObject]) {
+    if (!value) {
+     failure_reason_callback?.(
+      `<${type_of(value)}> is not suitable for <${type.name}>`,
+     )
+     return false
+    }
+    return Object.entries(type.properties).every(function ([
+     property_name,
+     property_type,
+    ]) {
+     let rreason
+     const property_is_valid = is_a_valid(
+      property_type,
+      value[property_name],
+      (_reason) => (rreason = _reason),
+     )
+     if (!property_is_valid) {
+      failure_reason_callback?.(
+       `property '${property_name}': <${type_string(
+        type_of(value[property_name]),
+       )}> not suitable for <${property_type}> (reason is ${
+        rreason ?? 'unknown'
+       })`,
+      )
+     }
+     return property_is_valid
+    })
+   } else {
+    failure_reason_callback?.(`<${type}> is not yet implemented`)
+    console.log(type)
+    return false
+   }
+ }
+}
+
+function assert_type(type, value) {
+ let assert_reason
+ if (!is_a_valid(type, value, (_reason) => (assert_reason = _reason))) {
+  throw new Error(
+   `type assertion failed: ${type_string(type_of(value))} ${type_string(
+    type,
+   )} (reason is ${assert_reason})`,
+  )
+ }
+}
+
+assert_type(TypedFunctionType, create_element_function_type)
+
 if (typeof globalThis.define === 'function') {
  globalThis.define([], function () {
-  return { typed_frame, SIGNAL_INTERRUPT }
+  return {
+   assert_type,
+   global_type,
+   typed_frame,
+   TypedFunctionType,
+  }
  })
 }
