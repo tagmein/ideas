@@ -9,16 +9,12 @@ define(['./ideas', './known_signals'], function (
  const MESSAGE = 'message'
  main.set(MESSAGE, 'string', 'Hello World')
  main.set('window', global_type, globalThis)
- main.intercept(SIGNAL_PRINT_END, PrintFunctionType, function (extra) {
-  console.log(extra)
+ main.intercept(SIGNAL_PRINT_END, PrintFunctionType, function (content) {
+  console.log(content)
   return SIGNAL_INTERRUPT
  })
- main.intercept(
-  SIGNAL_PRINT,
-  { arguments: ['string'], return: 'undefined' },
-  function (extra) {
-   console.log(extra)
-  },
- )
+ main.intercept(SIGNAL_PRINT, PrintFunctionType, function (content) {
+  console.log(content)
+ })
  main.signal(SIGNAL_PRINT_END, main.value(MESSAGE))
 })
