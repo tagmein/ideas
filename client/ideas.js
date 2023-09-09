@@ -18,10 +18,14 @@ function type_string(type) {
  if (type[IsTypeObject]) {
   return type.name
  }
+ if (type[IsTypeArray]) {
+  return `Array<${type_string(type.items)}>`
+ }
  throw new Error('type not implemented')
 }
 
 const IsTypeArray = Symbol('IsTypeArray')
+const IsTypeFunction = Symbol('IsTypeFunction')
 const IsTypeObject = Symbol('IsTypeObject')
 
 function type_of(value) {
@@ -150,22 +154,24 @@ function typed_frame() {
   signal(signal_name, ...extra) {
    if (interceptors.has(signal_name)) {
     for (const interceptor of interceptors.get(signal_name)) {
-     for (const index in interceptor.signal_handler_function_type.arguments) {
-      let reason
-      if (
-       !is_a_valid(
-        interceptor.signal_handler_function_type.arguments[index],
-        extra[index],
-        (_reason) => (reason = _reason),
-       )
-      ) {
-       throw new Error(
-        `when handling signal <${signal_name}> at index ${index}, expecting <${type_string(
+     if (!interceptor.signal_handler_function_type.arguments[IsTypeArray]) {
+      for (const index in interceptor.signal_handler_function_type.arguments) {
+       let reason
+       if (
+        !is_a_valid(
          interceptor.signal_handler_function_type.arguments[index],
-        )}> but got <${type_of(extra[index])}> (reason is ${
-         reason ?? 'unknown'
-        })`,
-       )
+         extra[index],
+         (_reason) => (reason = _reason),
+        )
+       ) {
+        throw new Error(
+         `when handling signal <${signal_name}> at index ${index}, expecting <${type_string(
+          interceptor.signal_handler_function_type.arguments[index],
+         )}> but got <${type_of(extra[index])}> (reason is ${
+          reason ?? 'unknown'
+         })`,
+        )
+       }
       }
      }
      const raise_signal = interceptor.signal_handler(...extra)
@@ -179,20 +185,41 @@ function typed_frame() {
  return me
 }
 
+const dom_token_list_type = {
+ [IsTypeObject]: true,
+ name: 'DOMTokenList',
+ properties: {
+  add: {
+   [IsTypeFunction]: true,
+   arguments: ['string'],
+   return: 'undefined',
+  },
+  remove: {
+   [IsTypeFunction]: true,
+   arguments: ['string'],
+   return: 'undefined',
+  },
+ },
+}
+
 const element_type = {
  [IsTypeObject]: true,
  name: 'Element',
  properties: {
-  classList: {
-   [IsTypeArray]: true,
-   items: 'string',
+  appendChild: {
+   [IsTypeFunction]: true,
+   arguments: [],
+   return: 'undefined',
   },
+  classList: dom_token_list_type,
   tagName: 'string',
  },
 }
 
+element_type.properties.appendChild.arguments[0] = element_type
+
 const create_element_function_type = {
- [IsTypeObject]: true,
+ [IsTypeFunction]: true,
  arguments: ['string'],
  return: element_type,
 }
@@ -203,6 +230,7 @@ const document_type = {
  properties: {
   body: element_type,
   createElement: create_element_function_type,
+  head: element_type,
  },
 }
 
@@ -247,8 +275,17 @@ function is_a_valid(type, value, failure_reason_callback) {
     if (!type.items) {
      throw new Error('array type without items specified')
     }
-    if (!Array.isArray(value)) {
-     failure_reason_callback?.(`expected array`)
+    // string[] === DOMTokenList
+    if (value?.constructor === DOMTokenList && type.items === 'string') {
+     return true
+    }
+    if (value && value[IsTypeArray]) {
+     return type.items === 'type'
+    } else if (!Array.isArray(value)) {
+     failure_reason_callback?.(
+      `expected array, got ${type_string(type_of(value))}`,
+     )
+     return false
     }
     return value.every(function (item, index) {
      // does the item match the type of type.items
@@ -263,7 +300,9 @@ function is_a_valid(type, value, failure_reason_callback) {
      return array_item_is_valid
     })
    }
-   if (type && type[IsTypeObject]) {
+   if (type && type[IsTypeFunction]) {
+    return typeof value === 'function' // todo (?) assuming types currently
+   } else if (type && type[IsTypeObject]) {
     if (!value) {
      failure_reason_callback?.(
       `<${type_of(value)}> is not suitable for <${type.name}>`,
