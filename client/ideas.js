@@ -90,47 +90,27 @@ const TypedFunctionType = {
 
 function typed_frame() {
  const type_map = new Map()
- const value_map = new Map()
  const interceptors = new Map()
  const me = {
+  type_map,
+  interceptors,
   forget(name) {
    type_map.delete(name)
-   value_map.delete(name)
   },
   type(name) {
    return type_map.get(name)
   },
-  value(name) {
-   return value_map.get(name)
-  },
-  set(name, type, value, overwrite = false) {
-   if (!is_a_valid(type, value)) {
-    throw new Error(`type mismatch at set: <${type}> vs <${type_of(value)}>`)
-   }
+  set(name, type, overwrite = false) {
    const known_type = me.type(name)
    // if type does not exist, set type and value
    // if type exists, and overwrite is false, throw error
-   // if type exists, and overwrite is true, and value does not conform to
-   //  known_type, throw error
-   // if type exists, and overwrite is true, and value does conform to
-   //  known_type, overwrite existing type and value
-   if (!known_type) {
-    type_map.set(name, type)
-   } else {
-    // i already exist, let's make sure i have permission to overwrite
-    if (!overwrite) {
-     throw new Error(
-      `no permission to overwrite variable ${name}<${known_type}>`,
-     )
-    }
-    // i already have a type, let's check your value
-    if (!is_a_valid(known_type, value)) {
-     throw new Error(
-      `type conversion mismatch at set: this <${type}> vs known ${name}<${known_type}>`,
-     )
-    }
+   // if type exists, and overwrite is true, overwrite existing type
+   if (known_type && !overwrite) {
+    throw new Error(
+     `no permission to overwrite variable ${name}<${known_type}>`,
+    )
    }
-   value_map.set(name, value)
+   type_map.set(name, type)
   },
   intercept(signal_name, signal_handler_function_type, signal_handler) {
    let reason
