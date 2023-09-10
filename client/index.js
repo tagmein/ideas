@@ -122,38 +122,12 @@ define(['./ideas', './known_signals'], function (
     break
   }
  })
-
- main.signal(SIGNAL_RUN, ARGUMENTS, 'div')
- main.signal(SIGNAL_RUN, GET, 'window', 'document', 'createElement')
- main.signal(SIGNAL_RUN, RUN)
- main.signal(SIGNAL_RUN, SET, 'container')
- main.signal(SIGNAL_RUN, ARGUMENTS_ZERO)
- main.signal(SIGNAL_RUN, ARGUMENTS_GET, 'container')
- main.signal(SIGNAL_RUN, GET, 'window', 'document', 'body', 'appendChild')
- main.signal(SIGNAL_RUN, RUN)
- main.signal(SIGNAL_RUN, ARGUMENTS, 'style')
- main.signal(SIGNAL_RUN, GET, 'window', 'document', 'createElement')
- main.signal(SIGNAL_RUN, RUN)
- main.signal(SIGNAL_RUN, SET, 'global-style')
- main.signal(
-  SIGNAL_RUN,
-  VALUE,
-  `
- .container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+ async function next() {
+  const response = await fetch('/client/startup.json')
+  if (response.ok) {
+   const script = await response.json()
+   script.map((line) => main.signal(SIGNAL_RUN, ...line))
+  }
  }
- `,
- )
- main.signal(SIGNAL_RUN, SET, 'global-style', 'textContent')
- main.signal(SIGNAL_RUN, ARGUMENTS_ZERO)
- main.signal(SIGNAL_RUN, ARGUMENTS_GET, 'global-style')
- main.signal(SIGNAL_RUN, GET, 'window', 'document', 'head', 'appendChild')
- main.signal(SIGNAL_RUN, RUN)
- main.signal(SIGNAL_RUN, ARGUMENTS, 'container')
- main.signal(SIGNAL_RUN, GET, 'container', 'classList', 'add')
- main.signal(SIGNAL_RUN, RUN)
+ next().catch((e) => console.error(e))
 })
