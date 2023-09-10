@@ -43,6 +43,11 @@ define(['./ideas', './known_signals'], function (
    if (typeof type === 'undefined' || type === null) {
     throw new Error(`cannot read '${segment}' of ${type}`)
    }
+   if (type?.[IsTypePromise]) {
+    throw new Error(
+     `cannot read '${segment}' of promise, you may want to first await`,
+    )
+   }
    if (!('properties' in type)) {
     throw new Error(
      `type ${type_string(
@@ -66,19 +71,61 @@ define(['./ideas', './known_signals'], function (
   context[last] = value
  }
 
- const ARGUMENTS = 0
- const GET = 1
- const RUN = 2
- const SET = 3
- const ARGUMENTS_ZERO = 4
- const ARGUMENTS_GET = 5
- const VALUE = 6
+ const ADVANCE = 0
+ const ARGUMENTS = 1
+ const ARGUMENTS_GET = 2
+ const ARGUMENTS_ZERO = 3
+ const GET = 4
+ const RUN = 5
+ const SET = 6
+ const VALUE = 7
+ const AWAIT = 8
+ const FOR_EACH = 9
+ const ITERATOR_VALUE = 10
+ const ITERATOR_INDEX = 11
+ const ARGUMENTS_CONCAT = 12
  main.scratch = {}
- main.intercept(SIGNAL_RUN, RunFunctionType, function (command, ...args) {
+ main.intercept(SIGNAL_RUN, RunFunctionType, async function (command, ...args) {
   switch (command) {
+   case FOR_EACH:
+    if (!main.scratch.attention_type[IsTypeArray]) {
+     throw new Error(`for each: attention type is not an array`)
+    }
+    const attention = main.scratch.attention
+    for (const i in attention) {
+     const item = attention[i]
+     for (const code of args[0]) {
+      const [command, ...rest] = code
+      if (command === ITERATOR_INDEX) {
+       main.scratch.attention = i
+       main.scratch.attention_type = 'number'
+      } else if (command === ITERATOR_VALUE) {
+       main.scratch.attention = item
+       main.scratch.attention_type = type_of(item)
+      } else {
+       await main.signal(SIGNAL_RUN, command, ...rest)
+      }
+     }
+    }
+    break
+   case ADVANCE:
+    main.scratch.attention = get_property(main.scratch.attention, args)
+    main.scratch.attention_type = get_property_type(
+     main.scratch.attention_type,
+     args,
+    )
+    break
    case ARGUMENTS:
     main.scratch.arguments = args
     main.scratch.arguments_types = args.map((arg) => type_of(arg))
+    break
+   case ARGUMENTS_CONCAT:
+    if (!main.scratch.attention_type[IsTypeArray]) {
+     throw new Error(`arguments concat: attention type is not an array`)
+    }
+    main.scratch.arguments = main.scratch.arguments.concat(
+     main.scratch.attention,
+    )
     break
    case ARGUMENTS_ZERO:
     main.scratch.arguments = []
@@ -90,6 +137,22 @@ define(['./ideas', './known_signals'], function (
     main.scratch.arguments_types.push(
      get_property_type(main.type(arg_name), arg_path),
     )
+    break
+   case AWAIT:
+    if (!main.scratch.attention_type) {
+     main.scratch.attention = await main.scratch.attention
+     return // todo why is this block needed
+    }
+    if (!main.scratch.attention_type[IsTypePromise]) {
+     debugger
+     throw new Error(
+      `can only await after promise, got ${type_string(
+       main.scratch.attention_type,
+      )}`,
+     )
+    }
+    main.scratch.attention = await main.scratch.attention
+    main.scratch.attention_type = main.scratch.attention_type.fulfilled
     break
    case GET:
     const [name, ...path] = args
@@ -106,15 +169,26 @@ define(['./ideas', './known_signals'], function (
     }
     break
    case RUN:
-    if (!main.scratch.attention_type.return) {
+    const current_attention_type = main.scratch.attention_type
+    if (!current_attention_type.return) {
      throw new Error(
       `cannot RUN at type ${type_string(
-       main.scratch.attention_type,
+       current_attention_type,
       )}, must be function with return type`,
      )
     }
     main.scratch.attention = main.scratch.attention(...main.scratch.arguments)
-    main.scratch.attention_type = main.scratch.attention_type.return
+    const [override_return_type] = args
+    if (override_return_type) {
+     if (!is_a_valid('type', override_return_type)) {
+      throw new Error(
+       `return type override is not a valid type, got ${override_return_type}`,
+      )
+     }
+     main.scratch.attention_type = override_return_type
+    } else {
+     main.scratch.attention_type = current_attention_type.return
+    }
     break
    case VALUE:
     main.scratch.attention = args[0]
@@ -126,7 +200,9 @@ define(['./ideas', './known_signals'], function (
   const response = await fetch('/client/startup.json')
   if (response.ok) {
    const script = await response.json()
-   script.map((line) => main.signal(SIGNAL_RUN, ...line))
+   for (const line of script) {
+    await main.signal(SIGNAL_RUN, ...line)
+   }
   }
  }
  next().catch((e) => console.error(e))

@@ -21,14 +21,29 @@ function type_string(type) {
  if (type[IsTypeArray]) {
   return `Array<${type_string(type.items)}>`
  }
- throw new Error('type not implemented')
+ if (type[IsTypeFunction]) {
+  return `Function(${type.arguments.map(type_string).join(', ')}):${type_string(
+   type.return,
+  )}`
+ }
+ if (type[IsTypePromise]) {
+  return `Promise<${type_string(type.fulfilled)}>`
+ }
+ throw new Error(`type '${type}' not implemented`)
 }
 
-const IsTypeArray = Symbol('IsTypeArray')
-const IsTypeFunction = Symbol('IsTypeFunction')
-const IsTypeObject = Symbol('IsTypeObject')
+const IsTypeArray = 'IsTypeArray'
+const IsTypeFunction = 'IsTypeFunction'
+const IsTypeObject = 'IsTypeObject'
+const IsTypePromise = 'IsTypePromise'
 
 function type_of(value) {
+ if (value && Array.isArray(value)) {
+  return {
+   [IsTypeArray]: true,
+   items: type_of(value[0]),
+  }
+ }
  const js_type = typeof value
  switch (js_type) {
   case 'bigint':
@@ -151,7 +166,7 @@ function typed_frame() {
    }
    return false // i didn't have any record of that
   },
-  signal(signal_name, ...extra) {
+  async signal(signal_name, ...extra) {
    if (interceptors.has(signal_name)) {
     for (const interceptor of interceptors.get(signal_name)) {
      if (!interceptor.signal_handler_function_type.arguments[IsTypeArray]) {
@@ -174,7 +189,7 @@ function typed_frame() {
        }
       }
      }
-     const raise_signal = interceptor.signal_handler(...extra)
+     const raise_signal = await interceptor.signal_handler(...extra)
      if (raise_signal === SIGNAL_INTERRUPT) {
       break
      }
@@ -234,11 +249,62 @@ const document_type = {
  },
 }
 
+const response_type = {
+ [IsTypeObject]: true,
+ properties: {
+  json: {
+   [IsTypeFunction]: true,
+   arguments: [],
+   return: {
+    [IsTypePromise]: true,
+    fulfilled: 'object',
+   },
+  },
+ },
+}
+
+const console_type = {
+ [IsTypeObject]: true,
+ properties: {
+  log: {
+   [IsTypeFunction]: true,
+   arguments: ['string'],
+   return: 'undefined',
+  },
+ },
+}
+
+const fetch_type = {
+ [IsTypeFunction]: true,
+ arguments: ['string'],
+ return: {
+  [IsTypePromise]: true,
+  fulfilled: response_type,
+ },
+}
+
+const frame_type = {
+ [IsTypeObject]: true,
+ properties: {
+  signal: {
+   [IsTypeFunction]: true,
+   arguments: [],
+   return: {
+    [IsTypePromise]: true,
+    final: 'undefined',
+   },
+  },
+ },
+}
+
 const global_type = (globalThis.ideas_global_type = {
  [IsTypeObject]: true,
  name: 'Window',
  properties: {
+  console: console_type,
   document: document_type,
+  fetch: fetch_type,
+  main: frame_type,
  },
 })
 function is_a_valid(type, value, failure_reason_callback) {
@@ -247,9 +313,35 @@ function is_a_valid(type, value, failure_reason_callback) {
  }
  switch (type) {
   case 'type':
-   const is_valid_type =
-    KNOWN_TYPE_STRINGS.has(value) ||
-    (typeof value === 'object' && (value[IsTypeObject] || value[IsTypeArray]))
+   if (value?.[IsTypePromise]) {
+    if (
+     !is_a_valid('type', value.fulfilled, (x) =>
+      failure_reason_callback(`fullfilled: ${x}`),
+     )
+    ) {
+     return false
+    }
+    return true
+   }
+   if (value?.[IsTypeFunction]) {
+    // todo test function arguments types
+    if (
+     !is_a_valid('type', value.return, (x) =>
+      failure_reason_callback(`return: ${x}`),
+     )
+    ) {
+     return false
+    }
+    return true
+   }
+   if (
+    typeof value === 'object' &&
+    (value[IsTypeObject] || value[IsTypeArray])
+   ) {
+    return true
+   }
+   const is_valid_type = KNOWN_TYPE_STRINGS.has(value)
+
    if (!is_valid_type) {
     failure_reason_callback?.(
      'was expecting a known type, or a type object, or a type array',

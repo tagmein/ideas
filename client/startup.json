@@ -1,26 +1,52 @@
 [
- [0, "div"],
- [1, "window", "document", "createElement"],
- [2],
- [3, "container"],
- [4],
- [5, "container"],
- [1, "window", "document", "body", "appendChild"],
- [2],
- [0, "style"],
- [1, "window", "document", "createElement"],
- [2],
- [3, "global-style"],
+ [1, "div"],
+ [4, "window", "document", "createElement"],
+ [5],
+ [6, "container"],
+ [3],
+ [2, "container"],
+ [4, "window", "document", "body", "appendChild"],
+ [5],
+ [1, "style"],
+ [4, "window", "document", "createElement"],
+ [5],
+ [6, "global-style"],
  [
-  6,
+  7,
   "\n .container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n }\n "
  ],
- [3, "global-style", "textContent"],
- [4],
- [5, "global-style"],
- [1, "window", "document", "head", "appendChild"],
- [2],
- [0, "container"],
- [1, "container", "classList", "add"],
- [2]
+ [6, "global-style", "textContent"],
+ [3],
+ [2, "global-style"],
+ [4, "window", "document", "head", "appendChild"],
+ [5],
+ [1, "container"],
+ [4, "container", "classList", "add"],
+ [5],
+ [1, "/client/lib/add-style.json"],
+ [4, "window", "fetch"],
+ [5],
+ [8],
+ [0, "json"],
+ [
+  5,
+  {
+   "IsTypePromise": true,
+   "fulfilled": {
+    "IsTypeArray": true,
+    "items": { "IsTypeArray": true, "items": "number" }
+   }
+  }
+ ],
+ [8],
+ [
+  9,
+  [
+   [1, "run"],
+   [10],
+   [12],
+   [4, "window", "main", "signal"],
+   [1, "todo was not able to use [5] and [8] here"]
+  ]
+ ]
 ]
