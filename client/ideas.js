@@ -146,7 +146,7 @@ function typed_frame() {
    }
    return false // i didn't have any record of that
   },
-  async signal(signal_name, ...extra) {
+  signal(signal_name, ...extra) {
    if (interceptors.has(signal_name)) {
     for (const interceptor of interceptors.get(signal_name)) {
      if (!interceptor.signal_handler_function_type.arguments[IsTypeArray]) {
@@ -169,7 +169,7 @@ function typed_frame() {
        }
       }
      }
-     const raise_signal = await interceptor.signal_handler(...extra)
+     const raise_signal = interceptor.signal_handler(...extra)
      if (raise_signal === SIGNAL_INTERRUPT) {
       break
      }

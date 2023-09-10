@@ -39,14 +39,5 @@
   }
  ],
  [8],
- [
-  9,
-  [
-   [1, "run"],
-   [10],
-   [12],
-   [4, "window", "main", "signal"],
-   [1, "todo was not able to use [5] and [8] here"]
-  ]
- ]
+ [9, [[1, "run"], [10], [12], [4, "window", "main", "signal"], [1], [5], [8]]]
 ]

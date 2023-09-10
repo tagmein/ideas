@@ -62,10 +62,17 @@ define(['./ideas', './known_signals'], function (
  main.scratch = {}
  main.intercept(SIGNAL_RUN, RunFunctionType, async function (command, ...args) {
   switch (command) {
+   case ITERATOR_VALUE:
+    main.scratch.attention_type = main.scratch.iterator_type
+    break
+   case ITERATOR_INDEX:
+    main.scratch.attention_type = 'number'
+    break
    case FOR_EACH:
     if (!main.scratch.attention_type[IsTypeArray]) {
      throw new Error(`for each: attention type is not an array`)
     }
+    main.scratch.iterator_type = main.scratch.attention_type.items
     // todo validate inner block of code in args[0]
     break
    case ADVANCE:
@@ -144,13 +151,184 @@ define(['./ideas', './known_signals'], function (
     break
   }
  })
+
+ function type_check(script) {
+  for (const line of script) {
+   main.signal(SIGNAL_RUN, ...line)
+  }
+ }
+
+ function build(script) {
+  let iterator_level = 0
+  let frame_level = 0
+  const output = ['(async function () {']
+  const endput = ['})()']
+  output.push(
+   'let _arguments = []',
+   'let _attention',
+   'let _attention0',
+   'let _attention1',
+   'let _attention2',
+   'let _get0',
+   'let _get1',
+  )
+  output.push(
+   'const _iterator_index_stack = []',
+   'const _iterator_source_stack = []',
+   'const _iterator_value_stack = []',
+   'const _frame_stack = [globalThis]',
+  )
+  for (const line of script) {
+   const [command, ...args] = line
+   switch (command) {
+    case ADVANCE: // 0
+     {
+      output.push(
+       `_attention0 = _attention${args
+        .slice(0, args.length - 1)
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')}`,
+      )
+      output.push(
+       `_attention = _attention${args
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')}`,
+      )
+      output.push(
+       `if (typeof _attention === 'function') { _attention = _attention.bind(_attention0) }`,
+      )
+     }
+     break
+    case ARGUMENTS: // 1
+     output.push(`_arguments = ${JSON.stringify(args)}`)
+     break
+    case ARGUMENTS_GET: // 2
+     {
+      const [name, ...path] = args
+      output.push(
+       `_get0 = _frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+        .slice(0, path.length - 1)
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')}`,
+      )
+      output.push(
+       `_get1 = _frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')}`,
+      )
+      output.push(
+       `if (typeof _get1 === 'function') { _get1 = _get1.bind(_get0) }`,
+      )
+      output.push('_arguments.push(_get1)')
+     }
+     break
+    case ARGUMENTS_ZERO: // 3
+     output.push('_arguments = []')
+     break
+    case GET: // 4
+     {
+      const [name, ...path] = args
+      output.push(
+       `_attention0 = _frame_stack[${frame_level}][${JSON.stringify(
+        name,
+       )}]${path
+        .slice(0, path.length - 1)
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')}`,
+      )
+      output.push(
+       `_attention = _frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')}`,
+      )
+      output.push(
+       `if (typeof _attention === 'function') { _attention = _attention.bind(_attention0) }`,
+      )
+     }
+     break
+    case RUN: // 5
+     output.push(
+      `if (typeof _attention !== 'function') { throw new Error('expecting function, got ' + _attention) }`,
+     )
+     output.push('_attention = _attention(..._arguments)')
+     output.push('_arguments = []')
+     break
+    case SET: // 6
+     {
+      const [name, ...path] = args
+      output.push(
+       `_frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+        .map(function (segment) {
+         return `[${JSON.stringify(segment)}]`
+        })
+        .join('')} = _attention`,
+      )
+     }
+     break
+    case VALUE: // 7
+     output.push('_attention = ' + JSON.stringify(args[0]))
+     break
+    case AWAIT: // 8
+     output.push('_attention = await _attention')
+     break
+    case FOR_EACH: // 9
+     const level = iterator_level
+     output.push(
+      `if (typeof _attention !== 'object' || !('length' in _attention)) { throw new Error('for each: attention must have length property, got ' + _attention)}`,
+      `_iterator_source_stack[${level}] = _attention`,
+      `for (_iterator_index_stack[${level}]=0;_iterator_index_stack[${level}]<_iterator_source_stack[${level}].length;_iterator_index_stack[${level}]++) {`,
+      `_iterator_value_stack[${level}] = _iterator_source_stack[${level}][_iterator_index_stack[${level}]]`,
+     )
+     endput.unshift(
+      '}',
+      '_iterator_index_stack.pop()',
+      '_iterator_source_stack.pop()',
+      '_iterator_value_stack.pop()',
+     )
+     iterator_level++
+     // todo handle block inside foreach recursively
+     iterator_level--
+     break
+    case ITERATOR_VALUE: // 10
+     output.push(
+      '_attention = _iterator_value_stack[_iterator_value_stack.length - 1]',
+     )
+     break
+    case ITERATOR_INDEX: // 11
+     output.push(
+      '_attention = _iterator_index_stack[_iterator_index_stack.length - 1',
+     )
+     break
+    case ARGUMENTS_CONCAT: // 12
+     output.push('_arguments = _arguments.concat(_attention)')
+     break
+    default:
+     throw new Error(`unhandled command: ${command}`)
+   }
+  }
+  return output.concat(endput).join('\n')
+ }
+
  async function next() {
   const response = await fetch('/client/startup.json')
   if (response.ok) {
    const script = await response.json()
-   for (const line of script) {
-    await main.signal(SIGNAL_RUN, ...line)
-   }
+   type_check(script) // throws an Error if invalid types
+   const compiled_js = build(script)
+   console.log('compiled output js', compiled_js)
+   eval(compiled_js) // build and run the resulting JavaScript
   }
  }
  next().catch((e) => console.error(e))
