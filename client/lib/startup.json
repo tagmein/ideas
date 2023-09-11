@@ -31,10 +31,10 @@
  [
   5,
   {
-   "IsTypePromise": true,
+   "IsType": "Promise",
    "fulfilled": {
-    "IsTypeArray": true,
-    "items": { "IsTypeArray": true, "items": "number" }
+    "IsType": "Array",
+    "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
    }
   }
  ],

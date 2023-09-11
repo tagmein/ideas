@@ -1,4 +1,4 @@
-const dotenv = require( 'dotenv')
+const dotenv = require('dotenv')
 const express = require('express')
 const fs = require('fs')
 const path = require('path')
@@ -20,7 +20,6 @@ Object.entries({
  'favicon.ico': '/favicon.ico',
  'ideas-logo.png': '/ideas-logo.png',
  'index.html': '/',
- 'require.js': '/require.js',
 }).map(function ([file, url]) {
  const extension = file.split('.').pop()
  const fileContents = fs.readFileSync(file)
@@ -59,12 +58,7 @@ app.post('/data', async function (req, res, next) {
  }
 })
 
-app.use(function (
- err,
- _,
- res,
- next,
-) {
+app.use(function (err, _, res, next) {
  console.error(err)
  if (res.headersSent) {
   return next(err)
