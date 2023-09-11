@@ -39,5 +39,14 @@
   }
  ],
  [8],
- [9, [[1, "run"], [10], [12], [4, "window", "main", "signal"], [1], [5], [8]]]
+ [6, "add-style-code"],
+ [13],
+ [4, "window", "civil", "type_check"],
+ [5],
+ [2, "add-style-code"],
+ [4, "window", "civil", "build"],
+ [5],
+ [13],
+ [4, "window", "eval"],
+ [5]
 ]

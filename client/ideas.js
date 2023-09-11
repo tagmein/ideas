@@ -1,5 +1,5 @@
-globalThis.ideas = (function () {
- const { global_type, IsType, Type } = globalThis.ideas_global
+function Ideas(scope) {
+ const { global_type, IsType, Type } = scope.ideas_global
  const SIGNAL_INTERRUPT = 'interrupt' // also found in known_signals
 
  const KNOWN_TYPE_STRINGS = new Set([
@@ -351,4 +351,10 @@ globalThis.ideas = (function () {
  }
 
  return ideas
-})()
+}
+
+if (typeof module === 'object') {
+ module.exports = Ideas
+} else {
+ globalThis.ideas = Ideas(globalThis)
+}

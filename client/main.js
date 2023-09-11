@@ -5,9 +5,12 @@ async function main() {
  }
  const script = await response.json()
  const check_frame = civil.type_check(script) // throws an Error if invalid types
- console.log(check_frame.scratch.attention_type, 'passed all type checks')
+ console.log(
+  'type:',
+  check_frame.scratch.attention_type,
+  '; passed all type checks',
+ )
  const compiled_js = civil.build(script)
- console.log('compiled output js', compiled_js)
  eval(compiled_js) // build and run the resulting JavaScript
 }
 main().catch((e) => console.error(e))

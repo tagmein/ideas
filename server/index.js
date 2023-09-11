@@ -5,6 +5,10 @@ const path = require('path')
 const sqlite3 = require('sqlite3')
 const { open } = require('sqlite')
 
+const ideas_global = require('../client/ideas_global')()
+const ideas = require('../client/ideas')({ ideas_global })
+const civil = require('../client/civil')({ ideas, ideas_global })
+
 dotenv.config()
 const port = process.env.PORT
 const app = express()

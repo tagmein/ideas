@@ -1,10 +1,11 @@
-globalThis.ideas_global = (function () {
+function IdeasGlobal() {
  const IsType = 'IsType'
 
  const Type = {
   Array: 'Array',
   Function: 'Function',
   Object: 'Object',
+  Optional: 'Optional',
   Promise: 'Promise',
  }
 
@@ -105,16 +106,29 @@ globalThis.ideas_global = (function () {
   },
  }
 
+ const eval_type = {
+  [IsType]: Type.Function,
+  arguments: ['string'],
+  return: 'unknown',
+ }
+
  const global_type = {
   [IsType]: Type.Object,
   name: 'Window',
   properties: {
    console: console_type,
    document: document_type,
+   eval: eval_type,
    fetch: fetch_type,
    main: frame_type,
   },
  }
 
  return { global_type, IsType, Type }
-})()
+}
+
+if (typeof module === 'object') {
+ module.exports = IdeasGlobal
+} else {
+ globalThis.ideas_global = IdeasGlobal()
+}

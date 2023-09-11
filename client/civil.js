@@ -1,4 +1,25 @@
-globalThis.civil = (function () {
+function Civil(scope) {
+ const civil_type = {
+  [scope.ideas.IsType]: scope.ideas.Type.Object,
+  properties: {
+   build: {
+    [scope.ideas.IsType]: scope.ideas.Type.Function,
+    arguments: ['code'],
+    return: 'string',
+   },
+   type_check: {
+    [scope.ideas.IsType]: scope.ideas.Type.Function,
+    arguments: [
+     'code',
+     { [scope.ideas.IsType]: scope.ideas.Type.Optional, type: 'frame' },
+    ],
+    return: 'undefined',
+   },
+  },
+ }
+
+ scope.ideas_global.global_type.properties.civil = civil_type
+
  const INSTRUCTION = {
   ADVANCE: 0,
   ARGUMENTS: 1,
@@ -13,6 +34,7 @@ globalThis.civil = (function () {
   ITERATOR_VALUE: 10,
   ITERATOR_INDEX: 11,
   ARGUMENTS_CONCAT: 12,
+  ARGUMENTS_PUSH: 13,
  }
 
  const SIGNAL = {
@@ -23,23 +45,23 @@ globalThis.civil = (function () {
  }
 
  const PrintFunctionType = {
-  [ideas.IsType]: 'Function',
+  [scope.ideas.IsType]: 'Function',
   arguments: ['string'],
   return: 'undefined',
  }
 
- ideas.assert_type(ideas.function_type, PrintFunctionType)
+ scope.ideas.assert_type(scope.ideas.function_type, PrintFunctionType)
 
  const RunFunctionType = {
-  [ideas.IsType]: 'Function',
-  arguments: { [ideas.IsType]: 'Array', items: 'type' },
+  [scope.ideas.IsType]: 'Function',
+  arguments: { [scope.ideas.IsType]: 'Array', items: 'type' },
   return: 'type',
  }
 
- ideas.assert_type(ideas.function_type, RunFunctionType)
+ scope.ideas.assert_type(scope.ideas.function_type, RunFunctionType)
 
- const base_frame = (globalThis.base_frame = ideas.typed_frame())
- base_frame.set('window', ideas.global_type, globalThis)
+ const base_frame = (globalThis.base_frame = scope.ideas.typed_frame())
+ base_frame.set('window', scope.ideas.global_type, globalThis)
 
  base_frame.intercept(
   SIGNAL.PRINT_END,
@@ -67,28 +89,34 @@ globalThis.civil = (function () {
      frame.scratch.attention_type = 'number'
      break
     case INSTRUCTION.FOR_EACH:
-     if (!frame.scratch.attention_type[ideas.IsType] === 'Array') {
+     if (!frame.scratch.attention_type[scope.ideas.IsType] === 'Array') {
       throw new Error(`for each: attention type is not an array`)
      }
      frame.scratch.iterator_type = frame.scratch.attention_type.items
      // todo validate inner block of code in args[0]
      break
     case INSTRUCTION.ADVANCE:
-     frame.scratch.attention_type = ideas.get_property_type(
+     frame.scratch.attention_type = scope.ideas.get_property_type(
       frame.scratch.attention_type,
       args,
      )
      break
     case INSTRUCTION.ARGUMENTS:
-     frame.scratch.arguments_types = args.map((arg) => ideas.type_of(arg))
+     frame.scratch.arguments_types = args.map((arg) => scope.ideas.type_of(arg))
      break
     case INSTRUCTION.ARGUMENTS_CONCAT:
-     if (!frame.scratch.attention_type[ideas.IsType] === 'Array') {
+     if (!frame.scratch.attention_type[scope.ideas.IsType] === 'Array') {
       throw new Error(`arguments concat: attention type is not an array`)
      }
      frame.scratch.argument_types = frame.scratch.argument_types.concat(
       frame.scratch.attention_type,
      )
+     break
+    case INSTRUCTION.ARGUMENTS_PUSH:
+     if (!Array.isArray(frame.scratch.argument_types)) {
+      frame.scratch.argument_types = []
+     }
+     frame.scratch.argument_types.push(frame.scratch.attention_type)
      break
     case INSTRUCTION.ARGUMENTS_ZERO:
      frame.scratch.arguments_types = []
@@ -96,14 +124,14 @@ globalThis.civil = (function () {
     case INSTRUCTION.ARGUMENTS_GET:
      const [arg_name, ...arg_path] = args
      frame.scratch.arguments_types.push(
-      ideas.get_property_type(frame.type(arg_name), arg_path),
+      scope.ideas.get_property_type(frame.type(arg_name), arg_path),
      )
      break
     case INSTRUCTION.AWAIT:
      if (!frame.scratch.attention_type) {
       return // todo why is this block needed
      }
-     if (!frame.scratch.attention_type[ideas.IsType] === 'Promise') {
+     if (!frame.scratch.attention_type[scope.ideas.IsType] === 'Promise') {
       throw new Error(
        `can only await after promise, got ${type_string(
         frame.scratch.attention_type,
@@ -114,7 +142,7 @@ globalThis.civil = (function () {
      break
     case INSTRUCTION.GET:
      const [name, ...path] = args
-     frame.scratch.attention_type = ideas.get_property_type(
+     frame.scratch.attention_type = scope.ideas.get_property_type(
       frame.type(name),
       path,
      )
@@ -136,7 +164,7 @@ globalThis.civil = (function () {
      }
      const [override_return_type] = args
      if (override_return_type) {
-      if (!ideas.is_a_valid('type', override_return_type)) {
+      if (!scope.ideas.is_a_valid('type', override_return_type)) {
        throw new Error(
         `return type override is not a valid type, got ${override_return_type}`,
        )
@@ -147,7 +175,7 @@ globalThis.civil = (function () {
      }
      break
     case INSTRUCTION.VALUE:
-     frame.scratch.attention_type = ideas.type_of(args[0])
+     frame.scratch.attention_type = scope.ideas.type_of(args[0])
      break
    }
   },
@@ -317,6 +345,9 @@ globalThis.civil = (function () {
     case INSTRUCTION.ARGUMENTS_CONCAT: // 12
      output.push('_arguments = _arguments.concat(_attention)')
      break
+    case INSTRUCTION.ARGUMENTS_PUSH:
+     output.push('_arguments.push(_attention)')
+     break
     default:
      throw new Error(`unhandled command: ${command}`)
    }
@@ -325,4 +356,10 @@ globalThis.civil = (function () {
  }
 
  return { base_frame, build, type_check }
-})()
+}
+
+if (typeof module === 'object') {
+ module.exports = Civil
+} else {
+ globalThis.civil = Civil(globalThis)
+}
