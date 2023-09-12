@@ -23,32 +23,26 @@
  [1, "container"],
  [4, "container", "classList", "add"],
  [5],
+ [1, "/client/lib/add-style.json"],
+ [4, "window", "fetch"],
+ [5],
+ [0, "json"],
  [
-  14,
-  [],
-  [
-   [1, "/client/lib/add-style.json"],
-   [4, "window", "fetch"],
-   [5],
-   [0, "json"],
-   [
-    5,
-    {
-     "IsType": "Array",
-     "code_source": "fetch_path",
-     "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
-    }
-   ],
-   [6, "add-style-code"],
-   [13],
-   [4, "window", "civil", "type_check"],
-   [5],
-   [2, "add-style-code"],
-   [4, "window", "civil", "to_javascript"],
-   [5],
-   [13],
-   [4, "window", "attach_javascript"],
-   [5]
-  ]
- ]
+  5,
+  {
+   "IsType": "Array",
+   "code_source": "fetch_path",
+   "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
+  }
+ ],
+ [6, "add-style-code"],
+ [13],
+ [4, "window", "civil", "type_check"],
+ [5],
+ [2, "add-style-code"],
+ [4, "window", "civil", "to_javascript"],
+ [5],
+ [13],
+ [4, "window", "attach_javascript"],
+ [5]
 ]
