@@ -14,6 +14,10 @@ function Ideas(scope) {
  ])
 
  function type_string(type) {
+  if (!type) {
+   debugger
+   throw new Error('type is missing')
+  }
   if (typeof type === 'string') {
    return type
   }
@@ -149,7 +153,7 @@ function Ideas(scope) {
     }
     return false // i didn't have any record of that
    },
-   signal(signal_name, ...extra) {
+   async signal(signal_name, ...extra) {
     if (interceptors.has(signal_name)) {
      for (const interceptor of interceptors.get(signal_name)) {
       if (
@@ -174,7 +178,7 @@ function Ideas(scope) {
         }
        }
       }
-      const raise_signal = interceptor.signal_handler(me, ...extra)
+      const raise_signal = await interceptor.signal_handler(me, ...extra)
       if (raise_signal === SIGNAL_INTERRUPT) {
        break
       }
@@ -298,7 +302,6 @@ function Ideas(scope) {
      })
     } else {
      failure_reason_callback?.(`<${type}> is not yet implemented`)
-     console.log(type)
      return false
     }
   }

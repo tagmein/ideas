@@ -3,7 +3,9 @@ function IdeasGlobal() {
 
  const Type = {
   Array: 'Array',
+  CivilScriptString: 'CivilScriptString',
   Function: 'Function',
+  JavaScriptString: 'JavaScriptString',
   Object: 'Object',
   Optional: 'Optional',
   Promise: 'Promise',
@@ -62,11 +64,15 @@ function IdeasGlobal() {
   [IsType]: Type.Object,
   properties: {
    json: {
+    code_source_json: true,
     [IsType]: Type.Function,
     arguments: [],
     return: {
      [IsType]: Type.Promise,
-     fulfilled: 'object',
+     fulfilled: {
+      [IsType]: Type.Object,
+      code_source: 'fetch_path',
+     },
     },
    },
   },
@@ -86,6 +92,7 @@ function IdeasGlobal() {
  const fetch_type = {
   [IsType]: Type.Function,
   arguments: ['string'],
+  fetch_argument_path: 0,
   return: {
    [IsType]: Type.Promise,
    fulfilled: response_type,
@@ -100,7 +107,7 @@ function IdeasGlobal() {
     arguments: [],
     return: {
      [IsType]: Type.Promise,
-     final: 'undefined',
+     fulfilled: 'undefined',
     },
    },
   },
@@ -112,10 +119,17 @@ function IdeasGlobal() {
   return: 'unknown',
  }
 
+ const attach_javascript_type = {
+  [IsType]: Type.Function,
+  arguments: [{ [IsType]: Type.JavaScriptString }],
+  return: 'code_type_of_arg_0',
+ }
+
  const global_type = {
   [IsType]: Type.Object,
   name: 'Window',
   properties: {
+   attach_javascript: attach_javascript_type,
    console: console_type,
    document: document_type,
    eval: eval_type,
