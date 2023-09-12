@@ -224,24 +224,11 @@ function Civil(scope) {
       }
       frame.scratch.arguments_values = []
       frame.scratch.arguments_types = []
-
-      if (
-       frame.scratch.attention_type[scope.ideas_global.IsType] ===
-        scope.ideas_global.Type.Function &&
-       frame.scratch.attention_type.return[scope.ideas_global.IsType] ===
-        scope.ideas_global.Type.JavaScriptString
-      ) {
-       debugger
-      }
       if (frame.scratch.attention_type.code_source) {
        if (frame.scratch.attention_type.code_source === 'fetch_path') {
         frame.scratch.attention_type.code_source = frame.scratch.fetch_path
        }
       }
-     }
-
-     if (frame.scratch.attention_type.return === 'code_type_of_arg_0') {
-      debugger
      }
      break
     case INSTRUCTION.VALUE:
@@ -266,7 +253,7 @@ function Civil(scope) {
    await frame.signal(SIGNAL.RUN, ...line)
   }
   if (!frame.scratch.attention_type) {
-   debugger // hmm no type
+   throw new Error('script produced no type')
   }
   return frame
  }

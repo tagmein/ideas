@@ -15,7 +15,6 @@ function Ideas(scope) {
 
  function type_string(type) {
   if (!type) {
-   debugger
    throw new Error('type is missing')
   }
   if (typeof type === 'string') {
