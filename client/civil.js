@@ -209,11 +209,9 @@ function Civil(scope) {
       }
      } else {
       if (current_attention_type.return === 'code_type_of_arg_0') {
-       frame.scratch.attention_type = {
-        [scope.ideas.IsType]: scope.ideas.Type.Promise,
-        fulfilled: (await type_check(frame.scratch.arguments_values[0])).scratch
-         .attention_type,
-       }
+       frame.scratch.attention_type = (
+        await type_check(frame.scratch.arguments_values[0])
+       ).scratch.attention_type
       } else if (
        current_attention_type.return[scope.ideas.IsType] ===
        scope.ideas.Type.Promise
