@@ -78,6 +78,17 @@ function IdeasGlobal() {
   },
  }
 
+ const civil_type = {
+  [IsType]: Type.Object,
+  properties: {
+   escape_string: {
+    [IsType]: Type.Function,
+    arguments: ['string'],
+    return: 'string',
+   },
+  },
+ }
+
  const console_type = {
   [IsType]: Type.Object,
   properties: {
@@ -130,6 +141,7 @@ function IdeasGlobal() {
   name: 'Window',
   properties: {
    attach_javascript: attach_javascript_type,
+   civil: civil_type,
    console: console_type,
    document: document_type,
    eval: eval_type,

@@ -245,15 +245,10 @@ function Civil(scope) {
   },
  )
 
- async function type_check(script, context = base_frame) {
-  const frame = context.clone()
-  for (const line of script) {
-   await frame.signal(SIGNAL.RUN, ...line)
-  }
-  if (!frame.scratch.attention_type) {
-   throw new Error('script produced no type')
-  }
-  return frame
+ function escape_string(source) {
+  return `\`${source.replace(/[\\\`]/g, (x) =>
+   x === '\\' ? '\\\\' : x === '`' ? '\\`' : x,
+  )}\``
  }
 
  function to_civilscript(script) {
@@ -446,7 +441,18 @@ function Civil(scope) {
    .join('\n')
  }
 
- return { base_frame, to_civilscript, to_javascript, type_check }
+ async function type_check(script, context = base_frame) {
+  const frame = context.clone()
+  for (const line of script) {
+   await frame.signal(SIGNAL.RUN, ...line)
+  }
+  if (!frame.scratch.attention_type) {
+   throw new Error('script produced no type')
+  }
+  return frame
+ }
+
+ return { base_frame, escape_string, to_civilscript, to_javascript, type_check }
 }
 
 if (typeof module === 'object') {
