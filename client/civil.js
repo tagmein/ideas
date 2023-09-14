@@ -313,16 +313,16 @@ function Civil(scope) {
      }
      break
     case INSTRUCTION.ARGUMENTS:
-     start.push(command('args') + args.map(value_to_civil_string).join(' '))
+     start.push('[ ' + args.map(value_to_civil_string).join(' ') + ' ]')
      break
     case INSTRUCTION.ARGUMENTS_CONCAT:
-     start.push(command('argsc') + args.map(value_to_civil_string).join(' '))
+     start.push('+[ ' + args.map(value_to_civil_string).join(' ') + ' ]')
      break
     case INSTRUCTION.ARGUMENTS_GET:
-     start.push(command('argsg') + args.map(value_to_civil_string).join(' '))
+     start.push(args.map(value_to_civil_string).join(' ') + ' >[]')
      break
     case INSTRUCTION.ARGUMENTS_PUSH:
-     const push = '>@'
+     const push = '>[]'
      if (start.length === 0) {
       start.push(push)
      } else {
@@ -330,25 +330,25 @@ function Civil(scope) {
      }
      break
     case INSTRUCTION.ARGUMENTS_ZERO:
-     start.push(command('argsz'))
+     start.push(command('[]]'))
      break
     case INSTRUCTION.AWAIT:
-     start.push(command('await'))
+     start.push(command('<await>'))
      break
     case INSTRUCTION.CREATE_FUNCTION:
-     start.push(command('fn') + args.map(value_to_civil_string).join(' '))
+     start.push(command('<fn>') + args.map(value_to_civil_string).join(' '))
      break
     case INSTRUCTION.FOR_EACH:
-     start.push(command('each') + args.map(value_to_civil_string).join(' '))
+     start.push(command('<each>') + args.map(value_to_civil_string).join(' '))
      break
     case INSTRUCTION.GET:
-     start.push(command('get') + args.map(value_to_civil_string).join(' '))
+     start.push(args.map(value_to_civil_string).join(' '))
      break
     case INSTRUCTION.ITERATOR_INDEX:
-     start.push(command('iteri'))
+     start.push('<iter_index>')
      break
     case INSTRUCTION.ITERATOR_VALUE:
-     start.push(command('iterv') + args.map(value_to_civil_string).join(' '))
+     start.push('<iter_value>')
      break
     case INSTRUCTION.RUN:
      if (start.length === 0) {
@@ -365,7 +365,7 @@ function Civil(scope) {
      }
      break
     case INSTRUCTION.VALUE:
-     start.push(command('value') + args.map(value_to_civil_string).join(' '))
+     start.push('= ' + args.map(value_to_civil_string).join(' '))
      break
     default:
      start.push(`ERR_UNSUP<${instruction}>`)

@@ -6,7 +6,7 @@ async function main() {
  const script = await response.json()
  // check types, throws an Error if invalid types
  const check_frame = await civil.type_check(script)
- console.log('passed type check ; source:')
+ console.log('passed type check ; source in civil script:')
  console.log(civil.escape_string(civil.to_civilscript(script)))
  // build and run the resulting JavaScript
  const return_value = await attach_javascript(civil.to_javascript(script))
