@@ -246,14 +246,132 @@ function Civil(scope) {
  )
 
  function escape_string(source) {
-  return `\`${source.replace(/[\\\`]/g, (x) =>
-   x === '\\' ? '\\\\' : x === '`' ? '\\`' : x,
-  )}\``
+  let replaced = false
+  const escaped = `\`${source.replace(/[\\\`\n]/g, function (x) {
+   if (x === '\\') {
+    replaced = true
+    return '\\\\'
+   } else if (x === '`') {
+    return '\\`'
+   } else if (x === '\n') {
+    replaced = true
+    return x
+   } else {
+    return x
+   }
+  })}\``
+  return replaced ? escaped : source
+ }
+
+ function escape_string_short(source) {
+  let replaced = false
+  const escaped = `'${source.replace(/[\\\'\n]/g, function (x) {
+   if (x === '\\') {
+    replaced = true
+    return '\\\\'
+   } else if (x === "'") {
+    return "\\'"
+   } else if (x === '\n') {
+    replaced = true
+    return '\\n'
+   } else {
+    return x
+   }
+  })}'`
+  return replaced ? escaped : source
+ }
+
+ function value_to_civil_string(value) {
+  switch (typeof value) {
+   case 'string':
+    return value.indexOf('\n') === -1
+     ? escape_string_short(value)
+     : escape_string(value)
+   case 'number':
+    return value.toString(10)
+   case 'boolean':
+    return value ? '1' : '0'
+   default:
+    throw new Error(`type ${typeof value} not supported`)
+  }
  }
 
  function to_civilscript(script) {
+  function command(name) {
+   return name.padEnd(8, ' ')
+  }
   const start = []
   const end = []
+  for (const [instruction, ...args] of script) {
+   switch (instruction) {
+    case INSTRUCTION.ADVANCE:
+     const path = '. ' + args.map((arg) => escape_string_short(arg)).join(' . ')
+     if (start.length === 0) {
+      start.push(command('advance') + path)
+     } else {
+      start[start.length - 1] += ' ' + path
+     }
+     break
+    case INSTRUCTION.ARGUMENTS:
+     start.push(command('args') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.ARGUMENTS_CONCAT:
+     start.push(command('argsc') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.ARGUMENTS_GET:
+     start.push(command('argsg') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.ARGUMENTS_PUSH:
+     const push = '>@'
+     if (start.length === 0) {
+      start.push(push)
+     } else {
+      start[start.length - 1] += ' ' + push
+     }
+     break
+    case INSTRUCTION.ARGUMENTS_ZERO:
+     start.push(command('argsz'))
+     break
+    case INSTRUCTION.AWAIT:
+     start.push(command('await'))
+     break
+    case INSTRUCTION.CREATE_FUNCTION:
+     start.push(command('fn') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.FOR_EACH:
+     start.push(command('each') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.GET:
+     start.push(command('get') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.ITERATOR_INDEX:
+     start.push(command('iteri'))
+     break
+    case INSTRUCTION.ITERATOR_VALUE:
+     start.push(command('iterv') + args.map(value_to_civil_string).join(' '))
+     break
+    case INSTRUCTION.RUN:
+     if (start.length === 0) {
+      start.push('!')
+     }
+     start[start.length - 1] += ' !'
+     break
+    case INSTRUCTION.SET:
+     const set = '>> ' + args.map(value_to_civil_string).join(' ')
+     if (start.length === 0) {
+      start.push(set)
+     } else {
+      start[start.length - 1] += ' ' + set
+     }
+     break
+    case INSTRUCTION.VALUE:
+     start.push(command('value') + args.map(value_to_civil_string).join(' '))
+     break
+    default:
+     start.push(`ERR_UNSUP<${instruction}>`)
+     break
+   }
+  }
   return start.concat(end).join('\n')
  }
 
@@ -452,7 +570,14 @@ function Civil(scope) {
   return frame
  }
 
- return { base_frame, escape_string, to_civilscript, to_javascript, type_check }
+ return {
+  base_frame,
+  escape_string,
+  escape_string_short,
+  to_civilscript,
+  to_javascript,
+  type_check,
+ }
 }
 
 if (typeof module === 'object') {

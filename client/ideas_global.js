@@ -86,6 +86,11 @@ function IdeasGlobal() {
     arguments: ['string'],
     return: 'string',
    },
+   escape_string_short: {
+    [IsType]: Type.Function,
+    arguments: ['string'],
+    return: 'string',
+   },
   },
  }
 
