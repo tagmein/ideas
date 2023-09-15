@@ -1,1 +1,18 @@
-[[14, [], [[1, "test"], [4, "window", "console", "log"], [5], [7, 42]]]]
+[
+ [
+  14,
+  [["style-text", "string"]],
+  [
+   [1, "style"],
+   [4, "document", "createElement"],
+   [5],
+   [6, "style-element"],
+   [4, "style-text"],
+   [6, "style-element", "textContent"],
+   [4, "style-element"],
+   [13],
+   [4, "document", "head", "appendChild"],
+   [5]
+  ]
+ ]
+]

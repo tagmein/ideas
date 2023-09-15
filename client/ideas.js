@@ -55,6 +55,9 @@ function Ideas(scope) {
    case 'undefined':
     return js_type
    case 'object':
+    if (value === null) {
+     return 'null'
+    }
     if (value[IsType] === 'Object') {
      return {
       [IsType]: Type.Object,
@@ -88,12 +91,22 @@ function Ideas(scope) {
   },
  }
 
- function typed_frame(type_map_source, interceptors_source, scratch_source) {
+ function typed_frame(
+  type_map_source,
+  interceptors_source,
+  scratch_source,
+  internal_global_type,
+ ) {
   const type_map = new Map(type_map_source)
   const interceptors = new Map(interceptors_source)
   const me = {
    clone() {
-    return typed_frame(type_map, interceptors)
+    return typed_frame(
+     type_map,
+     interceptors,
+     scratch_source,
+     internal_global_type,
+    )
    },
    scratch: scratch_source ? Object.assign({}, scratch_source) : {},
    type_map,
@@ -102,7 +115,17 @@ function Ideas(scope) {
     type_map.delete(name)
    },
    type(name) {
-    return type_map.get(name)
+    const local = type_map.get(name)
+    if (local) {
+     return local
+    }
+    if (internal_global_type) {
+     return get_property_type(internal_global_type, [name])
+    }
+    throw new Error(`'${name}' not found`)
+   },
+   set_global(type) {
+    internal_global_type = type
    },
    set(name, type, overwrite = false) {
     const known_type = me.type(name)

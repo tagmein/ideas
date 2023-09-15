@@ -21,6 +21,26 @@ mkdir -p data
 node server
 ```
 
+## Bytecode Reference
+
+```
+ADVANCE <...path>                         adv
+ARGUMENTS <...args>                       arg
+ARGUMENTS_GET <name>                      argg
+ARGUMENTS_ZERO                            argz
+GET <...path>                             get
+RUN                                       run
+SET <...path>                             set
+VALUE <value>                             value
+AWAIT                                     await
+FOR_EACH <array>                          each
+ITERATOR_VALUE                            iterv
+ITERATOR_INDEX                            iteri
+ARGUMENTS_CONCAT <...args>                argc
+ARGUMENTS_PUSH                            argp
+CREATE_FUNCTION [<...names>] [<...code>]  fn
+```
+
 ## Contributing
 
 Pull requests are welcomed. All contributions must be licensed with the MIT license.

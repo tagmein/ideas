@@ -67,7 +67,7 @@ function Civil(scope) {
  scope.ideas.assert_type(scope.ideas.function_type, RunFunctionType)
 
  const base_frame = (globalThis.base_frame = scope.ideas.typed_frame())
- base_frame.set('window', scope.ideas.global_type, globalThis)
+ base_frame.set_global(scope.ideas.global_type)
 
  base_frame.intercept(
   SIGNAL.PRINT_END,
@@ -236,7 +236,7 @@ function Civil(scope) {
      const [argument_names, function_code] = args
      frame.scratch.attention_type = {
       [scope.ideas.IsType]: scope.ideas.Type.Function,
-      arguments: argument_names.map(() => 'unknown'),
+      arguments: argument_names.map(([_, type]) => type),
       return: (await type_check(function_code)).scratch.attention_type,
      }
      break
@@ -393,7 +393,8 @@ function Civil(scope) {
    'const _iterator_index_stack = []',
    'const _iterator_source_stack = []',
    'const _iterator_value_stack = []',
-   'const _frame_stack = [globalThis]',
+   'if (typeof rootScope !== "object") { debugger }',
+   'const _frame_stack = [rootScope]',
   )
   for (const line of script) {
    const [command, ...args] = line
@@ -453,10 +454,10 @@ function Civil(scope) {
     case INSTRUCTION.GET: // 4
      {
       const [name, ...path] = args
+      const bind_property = path.length > 0 ? `[${JSON.stringify(name)}]` : ''
+
       start.push(
-       `_attention0 = _frame_stack[${frame_level}][${JSON.stringify(
-        name,
-       )}]${path
+       `_attention0 = _frame_stack[${frame_level}]${bind_property}${path
         .slice(0, path.length - 1)
         .map(function (segment) {
          return `[${JSON.stringify(segment)}]`
@@ -537,24 +538,29 @@ function Civil(scope) {
     case INSTRUCTION.CREATE_FUNCTION:
      const [argument_names, function_code] = args
      start.push(`_attention = async function (...args) {
- for (const [index, name] of ${JSON.stringify(argument_names)}.entries()) {
+ for (const [index, [name]] of ${JSON.stringify(argument_names)}.entries()) {
   _frame_stack[${frame_level}][name] = args[index]
  }
- _attention = await ${to_javascript(function_code, 1)}
+ _attention = await (${to_javascript(
+  function_code,
+  1,
+ )})(_frame_stack[${frame_level}])
  return _attention
-}`)
+}
+_attention.argument_names = ${JSON.stringify(argument_names)}
+`)
      break
     default:
      throw new Error(`unhandled command: ${command}`)
    }
   }
   const indent = ' '.repeat(indent_level)
-  return [`(async function () {`]
+  return [`${indent}async function (rootScope=globalThis) {`]
    .concat(
     start
      .concat(end)
      .map((x) => ` ${indent}${x}`)
-     .concat([`${indent} return _attention`, `${indent}})()`]),
+     .concat([`${indent} return _attention`, `${indent}}`]),
    )
    .join('\n')
  }

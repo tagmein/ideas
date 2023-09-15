@@ -34,14 +34,17 @@ function IdeasGlobal() {
   properties: {
    appendChild: {
     [IsType]: Type.Function,
-    arguments: [],
-    return: 'undefined',
+    arguments: [
+     /* argument type set below*/
+    ],
+    /* return type set below */
    },
    classList: dom_token_list_type,
    tagName: 'string',
   },
  }
 
+ element_type.properties.appendChild.return = element_type
  element_type.properties.appendChild.arguments[0] = element_type
 
  const create_element_function_type = {
@@ -154,6 +157,8 @@ function IdeasGlobal() {
    main: frame_type,
   },
  }
+
+ global_type.properties.window = global_type
 
  return { global_type, IsType, Type }
 }
