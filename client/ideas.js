@@ -15,7 +15,7 @@ function Ideas(scope) {
 
  function type_string(type) {
   if (!type) {
-   throw new Error('type is missing')
+   return 'unknown'
   }
   if (typeof type === 'string') {
    return type
@@ -349,6 +349,9 @@ function Ideas(scope) {
     throw new Error(
      `cannot read '${segment}' of promise, you may want to first await`,
     )
+   }
+   if (type === 'object') {
+    return 'unknown' // allow properties of all types if type is object
    }
    if (!('properties' in type)) {
     throw new Error(

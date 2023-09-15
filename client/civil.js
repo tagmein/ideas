@@ -135,16 +135,16 @@ function Civil(scope) {
      frame.scratch.arguments_types.push(frame.scratch.attention_type)
      frame.scratch.arguments_values.push(frame.scratch.attention)
      break
-    case INSTRUCTION.ARGUMENTS_ZERO:
-     frame.scratch.arguments_types = []
-     frame.scratch.arguments_values = []
-     break
     case INSTRUCTION.ARGUMENTS_GET:
      const [arg_name, ...arg_path] = args
      frame.scratch.arguments_types.push(
       scope.ideas.get_property_type(frame.type(arg_name), arg_path),
      )
      frame.scratch.arguments_values.push(undefined)
+     break
+    case INSTRUCTION.ARGUMENTS_ZERO:
+     frame.scratch.arguments_types = []
+     frame.scratch.arguments_values = []
      break
     case INSTRUCTION.AWAIT:
      if (!frame.scratch.attention_type) {
@@ -177,6 +177,13 @@ function Civil(scope) {
       frame.scratch.attention = await frame.scratch.attention()
      }
      const current_attention_type = frame.scratch.attention_type
+     if (!current_attention_type) {
+      throw new Error(
+       `cannot RUN at type ${scope.ideas.type_string(
+        current_attention_type,
+       )}, must be function`,
+      )
+     }
      if (!current_attention_type.return) {
       throw new Error(
        `cannot RUN at type ${scope.ideas.type_string(
@@ -210,7 +217,7 @@ function Civil(scope) {
      } else {
       if (current_attention_type.return === 'code_type_of_arg_0') {
        frame.scratch.attention_type = (
-        await type_check(frame.scratch.arguments_values[0])
+        await type_check(frame.scratch.arguments_values[0], frame)
        ).scratch.attention_type
       } else if (
        current_attention_type.return[scope.ideas.IsType] ===
@@ -234,10 +241,15 @@ function Civil(scope) {
      break
     case INSTRUCTION.CREATE_FUNCTION:
      const [argument_names, function_code] = args
+     const function_frame = frame.clone()
+     for (const [name, type] of argument_names) {
+      function_frame.set(name, type, true)
+     }
      frame.scratch.attention_type = {
       [scope.ideas.IsType]: scope.ideas.Type.Function,
       arguments: argument_names.map(([_, type]) => type),
-      return: (await type_check(function_code)).scratch.attention_type,
+      return: (await type_check(function_code, function_frame)).scratch
+       .attention_type,
      }
      break
    }
@@ -375,6 +387,11 @@ function Civil(scope) {
   return start.concat(end).join('\n')
  }
 
+ if (!('to_javascript_frames' in globalThis)) {
+  globalThis.to_javascript_frames = new Map()
+  globalThis.unique_to_javascript_frame = 0
+ }
+
  function to_javascript(script, indent_level = 0) {
   let iterator_level = 0
   let frame_level = 0
@@ -394,7 +411,7 @@ function Civil(scope) {
    'const _iterator_source_stack = []',
    'const _iterator_value_stack = []',
    'if (typeof rootScope !== "object") { debugger }',
-   'const _frame_stack = [rootScope]',
+   'const _value_frame_stack = [rootScope]',
   )
   for (const line of script) {
    const [command, ...args] = line
@@ -428,7 +445,9 @@ function Civil(scope) {
      {
       const [name, ...path] = args
       start.push(
-       `_get0 = _frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+       `_get0 = _value_frame_stack[${frame_level}][${JSON.stringify(
+        name,
+       )}]${path
         .slice(0, path.length - 1)
         .map(function (segment) {
          return `[${JSON.stringify(segment)}]`
@@ -436,7 +455,9 @@ function Civil(scope) {
         .join('')}`,
       )
       start.push(
-       `_get1 = _frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+       `_get1 = _value_frame_stack[${frame_level}][${JSON.stringify(
+        name,
+       )}]${path
         .map(function (segment) {
          return `[${JSON.stringify(segment)}]`
         })
@@ -457,7 +478,7 @@ function Civil(scope) {
       const bind_property = path.length > 0 ? `[${JSON.stringify(name)}]` : ''
 
       start.push(
-       `_attention0 = _frame_stack[${frame_level}]${bind_property}${path
+       `_attention0 = _value_frame_stack[${frame_level}]${bind_property}${path
         .slice(0, path.length - 1)
         .map(function (segment) {
          return `[${JSON.stringify(segment)}]`
@@ -465,7 +486,9 @@ function Civil(scope) {
         .join('')}`,
       )
       start.push(
-       `_attention = _frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+       `_attention = _value_frame_stack[${frame_level}][${JSON.stringify(
+        name,
+       )}]${path
         .map(function (segment) {
          return `[${JSON.stringify(segment)}]`
         })
@@ -487,7 +510,7 @@ function Civil(scope) {
      {
       const [name, ...path] = args
       start.push(
-       `_frame_stack[${frame_level}][${JSON.stringify(name)}]${path
+       `_value_frame_stack[${frame_level}][${JSON.stringify(name)}]${path
         .map(function (segment) {
          return `[${JSON.stringify(segment)}]`
         })
@@ -539,12 +562,12 @@ function Civil(scope) {
      const [argument_names, function_code] = args
      start.push(`_attention = async function (...args) {
  for (const [index, [name]] of ${JSON.stringify(argument_names)}.entries()) {
-  _frame_stack[${frame_level}][name] = args[index]
+  _value_frame_stack[${frame_level}][name] = args[index]
  }
  _attention = await (${to_javascript(
   function_code,
   1,
- )})(_frame_stack[${frame_level}])
+ )})(_value_frame_stack[${frame_level}])
  return _attention
 }
 _attention.argument_names = ${JSON.stringify(argument_names)}
@@ -567,10 +590,13 @@ _attention.argument_names = ${JSON.stringify(argument_names)}
 
  async function type_check(script, context = base_frame) {
   const frame = context.clone()
+  // let code = []
   for (const line of script) {
+   // code.push(line)
    await frame.signal(SIGNAL.RUN, ...line)
   }
   if (!frame.scratch.attention_type) {
+   // console.log(code.slice(0))
    throw new Error('script produced no type')
   }
   return frame

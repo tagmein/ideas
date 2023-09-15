@@ -1,0 +1,41 @@
+[
+ ["value", ".edit-document { background-color: #ffff0040; }"],
+ ["argp"],
+ ["get", "add-style"],
+ ["run"],
+ [
+  "fn",
+  [
+   [
+    "attach_to",
+    {
+     "IsType": "Object",
+     "properties": {
+      "appendChild": {
+       "IsType": "Function",
+       "arguments": [{ "IsType": "Object" }],
+       "return": { "IsType": "Object" }
+      }
+     }
+    }
+   ],
+   ["value", "object"],
+   [
+    "on_change",
+    { "IsType": "Function", "arguments": [], "return": "undefined" }
+   ]
+  ],
+  [
+   ["arg", "div"],
+   ["get", "document", "createElement"],
+   ["run"],
+   ["set", "edit-document-container"],
+   ["arg", "edit-document"],
+   ["get", "edit-document-container", "classList", "add"],
+   ["run"],
+   ["argg", "edit-document-container"],
+   ["get", "attach_to", "appendChild"],
+   ["run"]
+  ]
+ ]
+]

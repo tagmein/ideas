@@ -34,9 +34,6 @@
   }
  ],
  ["set", "add-style-code"],
- ["argp"],
- ["get", "civil", "type_check"],
- ["run"],
  ["argg", "add-style-code"],
  ["argc", 2],
  ["get", "civil", "to_javascript"],
@@ -45,8 +42,29 @@
  ["get", "attach_javascript"],
  ["run"],
  ["set", "add-style"],
- ["value", "body { background-color: #040; }"],
+
+ ["arg", "/client/lib/edit-document.json"],
+ ["get", "fetch"],
+ ["run"],
+ ["adv", "json"],
+ [
+  "run",
+  {
+   "IsType": "Array",
+   "code_source": "fetch_path",
+   "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
+  }
+ ],
+ ["set", "edit-document-code"],
+ ["argg", "edit-document-code"],
+ ["argc", 2],
+ ["get", "civil", "to_javascript"],
+ ["run"],
  ["argp"],
+ ["get", "attach_javascript"],
+ ["run"],
+ ["set", "edit-document"],
+ ["arg", "body { background-color: #040; }"],
  ["get", "add-style"],
  ["run"]
 ]
