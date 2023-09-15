@@ -12,7 +12,7 @@
  ["set", "global-style"],
  [
   "value",
-  "\n .container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n }\n "
+  "\n .container {\n  position: absolute;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n }\n.editor-area {\n position: absolute;\n top: 20px;\n left: 20px;\n bottom: 20px;\n right: 50%;\n border-radius: 4px;\n background-color: #ffff0040;\n overflow-x: hidden;\n overflow-y: auto;\n}"
  ],
  ["set", "global-style", "textContent"],
  ["argg", "global-style"],
@@ -66,5 +66,31 @@
  ["set", "edit-document"],
  ["arg", "body { background-color: #040; }"],
  ["get", "add-style"],
+ ["run"],
+ ["arg", "div"],
+ ["get", "document", "createElement"],
+ ["run"],
+ ["set", "editor-area"],
+ ["arg", "editor-area"],
+ ["get", "editor-area", "classList", "add"],
+ ["run"],
+ ["argg", "editor-area"],
+ ["get", "container", "appendChild"],
+ ["run"],
+ ["arg", "/client/lib/example.json"],
+ ["get", "fetch"],
+ ["run"],
+ ["adv", "json"],
+ [
+  "run",
+  {
+   "IsType": "Array",
+   "code_source": "fetch_path",
+   "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
+  }
+ ],
+ ["argg", "editor-area"],
+ ["argp"],
+ ["get", "edit-document"],
  ["run"]
 ]
