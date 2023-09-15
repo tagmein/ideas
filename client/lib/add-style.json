@@ -1,18 +1,18 @@
 [
  [
-  14,
+  "fn",
   [["style-text", "string"]],
   [
-   [1, "style"],
-   [4, "document", "createElement"],
-   [5],
-   [6, "style-element"],
-   [4, "style-text"],
-   [6, "style-element", "textContent"],
-   [4, "style-element"],
-   [13],
-   [4, "document", "head", "appendChild"],
-   [5]
+   ["arg", "style"],
+   ["get", "document", "createElement"],
+   ["run"],
+   ["set", "style-element"],
+   ["get", "style-text"],
+   ["set", "style-element", "textContent"],
+   ["get", "style-element"],
+   ["argp"],
+   ["get", "document", "head", "appendChild"],
+   ["run"]
   ]
  ]
 ]

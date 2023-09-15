@@ -26,21 +26,21 @@ function Civil(scope) {
  scope.ideas_global.global_type.properties.civil = civil_type
 
  const INSTRUCTION = {
-  ADVANCE: 0,
-  ARGUMENTS: 1,
-  ARGUMENTS_GET: 2,
-  ARGUMENTS_ZERO: 3,
-  GET: 4,
-  RUN: 5,
-  SET: 6,
-  VALUE: 7,
-  AWAIT: 8,
-  FOR_EACH: 9,
-  ITERATOR_VALUE: 10,
-  ITERATOR_INDEX: 11,
-  ARGUMENTS_CONCAT: 12,
-  ARGUMENTS_PUSH: 13,
-  CREATE_FUNCTION: 14,
+  ADVANCE: 'adv',
+  ARGUMENTS_CONCAT: 'argc',
+  ARGUMENTS_GET: 'argg',
+  ARGUMENTS_PUSH: 'argp',
+  ARGUMENTS_ZERO: 'argz',
+  ARGUMENTS: 'arg',
+  AWAIT: 'await',
+  CREATE_FUNCTION: 'fn',
+  FOR_EACH: 'each',
+  GET: 'get',
+  ITERATOR_INDEX: 'iteri',
+  ITERATOR_VALUE: 'iterv',
+  RUN: 'run',
+  SET: 'set',
+  VALUE: 'value',
  }
 
  const SIGNAL = {
