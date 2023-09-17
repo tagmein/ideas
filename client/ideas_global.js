@@ -9,6 +9,7 @@ function IdeasGlobal() {
   Object: 'Object',
   Optional: 'Optional',
   Promise: 'Promise',
+  Statement: 'Statement',
  }
 
  const dom_token_list_type = {
@@ -40,6 +41,11 @@ function IdeasGlobal() {
     /* return type set below */
    },
    classList: dom_token_list_type,
+   setAttribute: {
+    [IsType]: Type.Function,
+    arguments: ['string', 'string'],
+    return: 'undefined',
+   },
    tagName: 'string',
   },
  }

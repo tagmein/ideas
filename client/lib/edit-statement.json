@@ -1,0 +1,35 @@
+[
+ [
+  "value",
+  ".edit-statement {\n background-color: #ffff0040;\n border-bottom: 1px solid #00000020;\n box-sizing: border-box;\n display: flex;\n flex-direction: row;\n min-height: 40px; \n}"
+ ],
+ ["argp"],
+ ["get", "add-style"],
+ ["run"],
+ [
+  "fn",
+  [
+   ["value", { "IsType": "Statement" }],
+   [
+    "on_change",
+    { "IsType": "Function", "arguments": [], "return": "undefined" }
+   ]
+  ],
+  [
+   ["arg", "div"],
+   ["get", "document", "createElement"],
+   ["run"],
+   ["set", "edit-statement-container"],
+   ["arg", "edit-statement"],
+   ["get", "edit-statement-container", "classList", "add"],
+   ["run"],
+   ["argg", "value", 0],
+   ["get", "edit-instruction"],
+   ["run"],
+   ["argp"],
+   ["get", "edit-statement-container", "appendChild"],
+   ["run"],
+   ["get", "edit-statement-container"]
+  ]
+ ]
+]

@@ -2,6 +2,21 @@ function Civil(scope) {
  const civil_type = {
   [scope.ideas.IsType]: scope.ideas.Type.Object,
   properties: {
+   instruction_details: {
+    [scope.ideas.IsType]: scope.ideas.Type.Array,
+    items: {
+     [scope.ideas.IsType]: scope.ideas.Type.Object,
+     properties: {
+      instruction: 'string',
+      name: 'string',
+      argument_names: {
+       [scope.ideas.IsType]: scope.ideas.Type.Array,
+       items: 'string',
+      },
+      description: 'string',
+     },
+    },
+   },
    to_civilscript: {
     [scope.ideas.IsType]: scope.ideas.Type.Function,
     arguments: ['code'],
@@ -36,12 +51,119 @@ function Civil(scope) {
   CREATE_FUNCTION: 'fn',
   FOR_EACH: 'each',
   GET: 'get',
+  IF: 'if',
   ITERATOR_INDEX: 'iteri',
   ITERATOR_VALUE: 'iterv',
+  PAUSE: 'pause',
   RUN: 'run',
   SET: 'set',
   VALUE: 'value',
  }
+
+ const instruction_details = [
+  {
+   instruction: INSTRUCTION.ADVANCE,
+   name: 'advance',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.ARGUMENTS_CONCAT,
+   name: 'arguments_concat',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.ARGUMENTS_GET,
+   name: 'arguments_get',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.ARGUMENTS_PUSH,
+   name: 'arguments_push',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.ARGUMENTS_ZERO,
+   name: 'arguments_zero',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.ARGUMENTS,
+   name: 'arguments',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.AWAIT,
+   name: 'await',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.CREATE_FUNCTION,
+   name: 'create_function',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.FOR_EACH,
+   name: 'for_each',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.GET,
+   name: 'get',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.IF,
+   name: 'if',
+   argument_names: ['condition', 'code'],
+   description: 'Runs code if condition is met',
+  },
+  {
+   instruction: INSTRUCTION.ITERATOR_INDEX,
+   name: 'iterator_index',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.ITERATOR_VALUE,
+   name: 'iterator_value',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.PAUSE,
+   name: 'pause',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.RUN,
+   name: 'run',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.SET,
+   name: 'set',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+  {
+   instruction: INSTRUCTION.VALUE,
+   name: 'value',
+   argument_names: ['path'],
+   description: 'Read a property of the focus at path',
+  },
+ ]
 
  const SIGNAL = {
   INTERRUPT: 'interrupt',
@@ -88,6 +210,12 @@ function Civil(scope) {
   RunFunctionType,
   async function (frame, command, ...args) {
    switch (command) {
+    case INSTRUCTION.PAUSE:
+     break
+    case INSTRUCTION.IF:
+     frame.scratch.attention_type = 'undefined'
+     // todo - attention type should be either code return type or existing attention type
+     break
     case INSTRUCTION.ITERATOR_VALUE:
      frame.scratch.attention_type = frame.scratch.iterator_type
      break
@@ -303,6 +431,8 @@ function Civil(scope) {
     return value.toString(10)
    case 'boolean':
     return value ? '1' : '0'
+   case 'object':
+    return JSON.stringify(value)
    default:
     throw new Error(`type ${typeof value} not supported`)
   }
@@ -356,11 +486,17 @@ function Civil(scope) {
     case INSTRUCTION.GET:
      start.push(args.map(value_to_civil_string).join(' '))
      break
+    case INSTRUCTION.IF:
+     start.push('<if ...>')
+     break
     case INSTRUCTION.ITERATOR_INDEX:
      start.push('<iter_index>')
      break
     case INSTRUCTION.ITERATOR_VALUE:
      start.push('<iter_value>')
+     break
+    case INSTRUCTION.PAUSE:
+     start.push('<pause>')
      break
     case INSTRUCTION.RUN:
      if (start.length === 0) {
@@ -392,7 +528,7 @@ function Civil(scope) {
   globalThis.unique_to_javascript_frame = 0
  }
 
- function to_javascript(script, indent_level = 0) {
+ function to_javascript(script, indent_level = 0, inner_script = false) {
   let iterator_level = 0
   let frame_level = 0
   const start = []
@@ -406,13 +542,14 @@ function Civil(scope) {
    'let _get0',
    'let _get1',
   )
-  start.push(
-   'const _iterator_index_stack = []',
-   'const _iterator_source_stack = []',
-   'const _iterator_value_stack = []',
-   'if (typeof rootScope !== "object") { debugger }',
-   'const _value_frame_stack = [rootScope]',
-  )
+  if (!inner_script) {
+   start.push(
+    'const _iterator_index_stack = []',
+    'const _iterator_source_stack = []',
+    'const _iterator_value_stack = []',
+   )
+  }
+  start.push('const _value_frame_stack = [rootScope]')
   for (const line of script) {
    const [command, ...args] = line
    switch (command) {
@@ -526,21 +663,28 @@ function Civil(scope) {
      break
     case INSTRUCTION.FOR_EACH: // 9
      const level = iterator_level
+     iterator_level++
+     const [loop_code] = args
      start.push(
       `if (typeof _attention !== 'object' || !('length' in _attention)) { throw new Error('for each: attention must have length property, got ' + _attention)}`,
       `_iterator_source_stack[${level}] = _attention`,
       `for (_iterator_index_stack[${level}]=0;_iterator_index_stack[${level}]<_iterator_source_stack[${level}].length;_iterator_index_stack[${level}]++) {`,
-      `_iterator_value_stack[${level}] = _iterator_source_stack[${level}][_iterator_index_stack[${level}]]`,
-     )
-     end.unshift(
+      ` _iterator_value_stack[${level}] = _iterator_source_stack[${level}][_iterator_index_stack[${level}]]`,
+      ' await (',
+      to_javascript(loop_code, indent_level + 2, true),
+      ' )(rootScope)',
       '}',
       '_iterator_index_stack.pop()',
       '_iterator_source_stack.pop()',
       '_iterator_value_stack.pop()',
      )
-     iterator_level++
-     // todo handle block inside foreach recursively
      iterator_level--
+     break
+    case INSTRUCTION.PAUSE:
+     start.push('debugger')
+     break
+    case INSTRUCTION.IF:
+     start.push('console.log("IF")')
      break
     case INSTRUCTION.ITERATOR_VALUE: // 10
      start.push(
@@ -590,10 +734,20 @@ _attention.argument_names = ${JSON.stringify(argument_names)}
 
  async function type_check(script, context = base_frame) {
   const frame = context.clone()
-  // let code = []
-  for (const line of script) {
-   // code.push(line)
-   await frame.signal(SIGNAL.RUN, ...line)
+  let code = []
+  for (let line_index = 0; line_index < script.length; line_index++) {
+   const line = script[line_index]
+   code.push(line)
+   try {
+    await frame.signal(SIGNAL.RUN, ...line)
+   } catch (e) {
+    console.error(e, code)
+    throw new Error(
+     `${e.constructor.name} at instruction ${line_index}: ${JSON.stringify(
+      line,
+     )}`,
+    )
+   }
   }
   if (!frame.scratch.attention_type) {
    // console.log(code.slice(0))
@@ -604,8 +758,9 @@ _attention.argument_names = ${JSON.stringify(argument_names)}
 
  return {
   base_frame,
-  escape_string,
   escape_string_short,
+  escape_string,
+  instruction_details,
   to_civilscript,
   to_javascript,
   type_check,

@@ -43,6 +43,50 @@
  ["run"],
  ["set", "add-style"],
 
+ ["arg", "/client/lib/edit-instruction.json"],
+ ["get", "fetch"],
+ ["run"],
+ ["adv", "json"],
+ [
+  "run",
+  {
+   "IsType": "Array",
+   "code_source": "fetch_path",
+   "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
+  }
+ ],
+ ["set", "edit-instruction-code"],
+ ["argg", "edit-instruction-code"],
+ ["argc", 2],
+ ["get", "civil", "to_javascript"],
+ ["run"],
+ ["argp"],
+ ["get", "attach_javascript"],
+ ["run"],
+ ["set", "edit-instruction"],
+
+ ["arg", "/client/lib/edit-statement.json"],
+ ["get", "fetch"],
+ ["run"],
+ ["adv", "json"],
+ [
+  "run",
+  {
+   "IsType": "Array",
+   "code_source": "fetch_path",
+   "items": { "IsType": "Array", "items": { "IsType": "Statement" } }
+  }
+ ],
+ ["set", "edit-statement-code"],
+ ["argg", "edit-statement-code"],
+ ["argc", 2],
+ ["get", "civil", "to_javascript"],
+ ["run"],
+ ["argp"],
+ ["get", "attach_javascript"],
+ ["run"],
+ ["set", "edit-statement"],
+
  ["arg", "/client/lib/edit-document.json"],
  ["get", "fetch"],
  ["run"],
@@ -64,6 +108,7 @@
  ["get", "attach_javascript"],
  ["run"],
  ["set", "edit-document"],
+
  ["arg", "body { background-color: #040; }"],
  ["get", "add-style"],
  ["run"],

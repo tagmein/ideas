@@ -1,0 +1,51 @@
+[
+ [
+  "value",
+  ".edit-instruction {\n appearance: none;\n background-color: transparent;\n border: none;\n border-right: 1px solid #00000020;\n height: 39px;\n line-height: 100%;\n font-family: monospace;\n padding: 0 12px;\n}"
+ ],
+ ["argp"],
+ ["get", "add-style"],
+ ["run"],
+ [
+  "fn",
+  [
+   ["instruction-value", "string"],
+   [
+    "on_change",
+    { "IsType": "Function", "arguments": [], "return": "undefined" }
+   ]
+  ],
+  [
+   ["arg", "select"],
+   ["get", "document", "createElement"],
+   ["run"],
+   ["set", "edit-instruction-container"],
+   ["arg", "edit-instruction"],
+   ["get", "edit-instruction-container", "classList", "add"],
+   ["run"],
+   ["get", "civil", "instruction_details"],
+   [
+    "each",
+    [
+     ["arg", "option"],
+     ["get", "document", "createElement"],
+     ["run"],
+     ["set", "instruction-option"],
+     ["iterv"],
+     ["adv", "instruction"],
+     ["set", "instruction-option", "textContent"],
+     ["arg", "value"],
+     ["argp"],
+     ["get", "instruction-option", "setAttribute"],
+     ["run"],
+     ["argg", "instruction-option"],
+     ["get", "edit-instruction-container", "appendChild"],
+     ["run"]
+    ]
+   ],
+   ["get", "instruction-value"],
+   ["set", "edit-instruction-container", "value"],
+   ["get", "edit-instruction-container"]
+  ]
+ ]
+]

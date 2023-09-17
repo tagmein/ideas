@@ -35,7 +35,20 @@
    ["run"],
    ["argg", "edit-document-container"],
    ["get", "attach_to", "appendChild"],
-   ["run"]
+   ["run"],
+   ["get", "value"],
+   [
+    "each",
+    [
+     ["iterv"],
+     ["argp"],
+     ["get", "edit-statement"],
+     ["run"],
+     ["argp"],
+     ["get", "edit-document-container", "appendChild"],
+     ["run"]
+    ]
+   ]
   ]
  ]
 ]

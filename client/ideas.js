@@ -20,19 +20,22 @@ function Ideas(scope) {
   if (typeof type === 'string') {
    return type
   }
-  if (type[IsType] === 'Object') {
+  if (type[IsType] === Type.Object) {
    return type.name
   }
-  if (type[IsType] === 'Array') {
+  if (type[IsType] === Type.Array) {
    return `Array<${type_string(type.items)}>`
   }
-  if (type[IsType] === 'Function') {
+  if (type[IsType] === Type.Function) {
    return `Function(${type.arguments
     .map(type_string)
     .join(', ')}):${type_string(type.return)}`
   }
-  if (type[IsType] === 'Promise') {
+  if (type[IsType] === Type.Promise) {
    return `Promise<${type_string(type.fulfilled)}>`
+  }
+  if (type[IsType] === Type.Statement) {
+   return 'Statement'
   }
   throw new Error(`type '${type}' not implemented`)
  }
@@ -108,7 +111,11 @@ function Ideas(scope) {
      internal_global_type,
     )
    },
-   scratch: scratch_source ? Object.assign({}, scratch_source) : {},
+   scratch: Object.assign(
+    {},
+    { arguments_types: [], arguments_values: [] },
+    scratch_source ? scratch_source : {},
+   ),
    type_map,
    interceptors,
    forget(name) {
@@ -349,6 +356,12 @@ function Ideas(scope) {
     throw new Error(
      `cannot read '${segment}' of promise, you may want to first await`,
     )
+   }
+   if (type?.[ideas.IsType] === ideas.Type.Statement) {
+    if (typeof segment !== 'number') {
+     throw new Error(`Cannot read property ${typeof segment} of Statement`)
+    }
+    return 'string'
    }
    if (type === 'object') {
     return 'unknown' // allow properties of all types if type is object
